@@ -1,0 +1,31 @@
+# Virtual environment - never commit this
+nemo_env/
+
+# Dataset images - too large for GitHub
+domains/lung/data/raw/
+domains/lung/data/processed/
+
+# Model weights - too large for GitHub
+weights/
+domains/lung/checkpoints/
+domains/cornea/checkpoints/
+domains/bone/checkpoints/
+
+# Outputs
+outputs/reports/
+outputs/heatmaps/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# VS Code
+.vscode/
+
+# MongoDB credentials
+.env
+
+# OS files
+.DS_Store
+Thumbs.db

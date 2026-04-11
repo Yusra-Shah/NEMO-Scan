@@ -1,0 +1,38 @@
+# NEMO Scan - Requirements
+# Python 3.12.x (verified compatible)
+# Install: pip install -r requirements.txt
+
+# Deep Learning
+torch==2.6.0
+torchvision==0.21.0
+timm==1.0.15
+
+# Explainability
+grad-cam==1.5.4
+
+# Image Processing
+opencv-python==4.11.0.86
+albumentations==2.0.8
+Pillow==11.1.0
+
+# GUI
+PySide6==6.8.3
+
+# Database
+pymongo==4.10.1
+
+# ML Utilities
+scikit-learn==1.6.1
+pandas==2.2.3
+numpy==2.2.4
+matplotlib==3.10.1
+tqdm==4.67.1
+
+# Report Generation
+reportlab==4.3.0
+
+# Authentication
+bcrypt==4.3.0
+
+# Config
+PyYAML==6.0.2

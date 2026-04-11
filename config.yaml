@@ -1,0 +1,117 @@
+# NEMO Scan — Global Configuration
+# Do not change values here unless you update all dependent scripts too.
+
+project:
+  name: "NEMO Scan"
+  full_name: "Neural Engine for Medical Observation"
+  version: "1.0.0"
+  prototype: "Lung Module"
+
+paths:
+  train_dir:       "domains/lung/data/processed/train"
+  val_dir:         "domains/lung/data/processed/val"
+  test_dir:        "domains/lung/data/processed/test"
+  weights_dir:     "weights/lung"
+  checkpoints_dir: "domains/lung/checkpoints"
+  reports_dir:     "outputs/reports"
+  heatmaps_dir:    "outputs/heatmaps"
+
+dataset:
+  classes:       ["NORMAL", "PNEUMONIA"]
+  num_classes:   2
+  image_size:    224
+  target_total:  15000
+  train_split:   0.80
+  val_split:     0.10
+  test_split:    0.10
+
+training:
+  batch_size:               32
+  num_workers:              2
+  epochs:                   30
+  learning_rate:            0.001
+  fine_tune_lr:             0.0001
+  freeze_epochs:            5
+  early_stopping_patience:  7
+  device:                   "auto"
+
+models:
+  lung:
+    - name:             "mobilenetv3"
+      timm_name:        "mobilenetv3_large_100"
+      ensemble_weight:  0.10
+      role:             "Speed model — instant result in 2-3 seconds"
+
+    - name:             "resnet50"
+      timm_name:        "resnet50"
+      ensemble_weight:  0.18
+      role:             "Core ensemble — strong general feature extractor"
+
+    - name:             "densenet121"
+      timm_name:        "densenet121"
+      ensemble_weight:  0.25
+      role:             "Anchor model — CheXNet architecture, highest weight"
+
+    - name:             "efficientnet_b4"
+      timm_name:        "efficientnet_b4"
+      ensemble_weight:  0.20
+      role:             "Efficiency model — accuracy and speed balance"
+
+    - name:             "vit_b16"
+      timm_name:        "vit_base_patch16_224"
+      ensemble_weight:  0.17
+      role:             "Attention model — global pattern detection"
+
+    - name:             "inception_v3"
+      timm_name:        "inception_v3"
+      ensemble_weight:  0.10
+      role:             "Multi-scale detector — fine and coarse features"
+
+    - name:             "attention_cnn"
+      timm_name:        "custom"
+      ensemble_weight:  0.00
+      role:             "Explainability only — produces Grad-CAM heatmap"
+
+ensemble:
+  threshold: 0.50
+  severity:
+    none:     [0.00, 0.30]
+    mild:     [0.30, 0.55]
+    moderate: [0.55, 0.75]
+    severe:   [0.75, 1.00]
+
+# MongoDB Atlas — replace with your actual credentials
+mongodb:
+  uri:        "mongodb+srv://<username>:<password>@<cluster>.mongodb.net/"
+  database:   "nemo_scan"
+  collections:
+    doctors:  "doctors"
+    patients: "patients"
+    scans:    "scans"
+    audit:    "audit_log"
+
+gui:
+  window_width:   1400
+  window_height:  900
+  sidebar_width:  240
+  colors:
+    background:       "#F8F9FA"
+    surface:          "#FFFFFF"
+    border:           "#E8EAED"
+    text_primary:     "#202124"
+    text_secondary:   "#5F6368"
+    accent_blue:      "#4285F4"
+    accent_red:       "#EA4335"
+    accent_green:     "#34A853"
+    accent_yellow:    "#FBBC05"
+  font:
+    family:       "Segoe UI"
+    size_metric:  28
+    size_header:  14
+    size_body:    12
+    size_label:   10
+  layout:
+    card_radius:      16
+    button_radius:    20
+    content_padding:  40
+    section_spacing:  32
