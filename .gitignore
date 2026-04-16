@@ -29,3 +29,11 @@ __pycache__/
 # OS files
 .DS_Store
 Thumbs.db
+
+# Large zip files
+*.zip
+*.tar
+*.tar.gz
+
+# RSNA dataset zip
+rsna-pneumonia-detection-challenge.zip
