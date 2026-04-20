@@ -44,7 +44,6 @@ MAIN_STYLE = f"""
 QMainWindow, QWidget {{ color: {TEXT}; }}
 QMainWindow {{ background-color: {BG}; }}
 QWidget#main_window {{ background-color: {BG}; }}
-QLabel {{ background-color: transparent; border: none; color: {TEXT}; }}
 QWidget#sidebar {{ background-color: {SURFACE}; border-right: 1px solid {BORDER}; }}
 QWidget#content_area {{ background-color: {BG}; }}
 QFrame#card {{
@@ -118,6 +117,7 @@ QLabel#badge_review {{
     border-radius: 10px; padding: 3px 10px;
     font-size: {FONT_LABEL}px; font-weight: 600;
 }}
+QLabel {{ background-color: transparent; border: none; color: {TEXT}; }}
 """
 
 HOLO_STYLE = f"""

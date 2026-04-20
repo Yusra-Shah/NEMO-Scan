@@ -228,14 +228,14 @@ class ModelsPanel(QWidget):
 
         # Summary bar
         summary = QFrame()
-        summary.setStyleSheet(f"background-color: {SURFACE}; border: 1px solid {BORDER}; border-radius: 12px;")
+        summary.setStyleSheet(f"background-color: {SURFACE}; border: 1px solid {BORDER}; border-radius: 12px; QLabel {{ background-color: transparent; border: none; }}")
         sl = QHBoxLayout(summary)
         sl.setContentsMargins(20, 14, 20, 14)
         sl.setSpacing(32)
         for label, val in [("Models Loaded", "7 / 7"), ("Ensemble Acc.", "98.4%"), ("Total Parameters", "~198M"), ("Architecture", "Weighted Soft-Vote")]:
             b = QVBoxLayout(); b.setSpacing(2)
-            v = QLabel(val); v.setStyleSheet(f"font-size: 16px; font-weight: 700; color: {TEXT}; font-family: '{FONT_FAMILY}';")
-            l = QLabel(label); l.setStyleSheet(f"font-size: {FONT_LABEL}px; color: {TEXT_SEC}; font-family: '{FONT_FAMILY}';")
+            v = QLabel(val); v.setStyleSheet(f"font-size: 16px; font-weight: 700; color: {TEXT}; font-family: '{FONT_FAMILY}'; background-color: transparent; border: none;")
+            l = QLabel(label); l.setStyleSheet(f"font-size: {FONT_LABEL}px; color: {TEXT_SEC}; font-family: '{FONT_FAMILY}'; background-color: transparent; border: none;")
             b.addWidget(v); b.addWidget(l)
             sl.addLayout(b)
         sl.addStretch()

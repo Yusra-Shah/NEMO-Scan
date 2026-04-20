@@ -55,6 +55,8 @@ def main():
 
     login = LoginScreen()
     login.resize(1000, 650)
+    screen = app.primaryScreen().geometry()
+    login.move((screen.width() - 1000) // 2, (screen.height() - 650) // 2)
 
     _window_ref = []   # keeps MainWindow alive after on_login returns
 

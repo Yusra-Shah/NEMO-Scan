@@ -161,7 +161,7 @@ class ModelVoteBar(QWidget):
 
         self.name = QLabel(display_name)
         self.name.setFixedWidth(130)
-        self.name.setStyleSheet(f"font-size: 10px; color: {HOLO_TEXT_SEC}; font-family: '{FONT_FAMILY}';")
+        self.name.setStyleSheet(f"font-size: 10px; color: {HOLO_TEXT_SEC}; font-family: '{FONT_FAMILY}'; background-color: transparent; border: none;")
 
         self.bar = QProgressBar()
         self.bar.setRange(0, 100)
@@ -173,7 +173,7 @@ class ModelVoteBar(QWidget):
         self.pct = QLabel("--")
         self.pct.setFixedWidth(38)
         self.pct.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
-        self.pct.setStyleSheet(f"font-size: 10px; color: {HOLO_BLUE_LIGHT}; font-family: '{FONT_FAMILY}';")
+        self.pct.setStyleSheet(f"font-size: 10px; color: {HOLO_BLUE_LIGHT}; font-family: '{FONT_FAMILY}'; background-color: transparent; border: none;")
 
         self.status = QLabel("Waiting")
         self.status.setFixedWidth(55)
@@ -197,12 +197,12 @@ class ModelVoteBar(QWidget):
         self.pct.setText(f"{pct}%")
         if prob >= 0.5:
             self._set_bar_color(HOLO_RED)
-            self.pct.setStyleSheet(f"font-size: 10px; color: {HOLO_RED}; font-family: '{FONT_FAMILY}';")
+            self.pct.setStyleSheet(f"font-size: 10px; color: {HOLO_RED}; font-family: '{FONT_FAMILY}'; background-color: transparent; border: none;")
             self.status.setText("Positive")
             self.status.setStyleSheet(f"font-size: 9px; color: {HOLO_RED}; background-color: rgba(234,67,53,0.1); border-radius: 8px; padding: 2px 4px; font-family: '{FONT_FAMILY}';")
         else:
             self._set_bar_color(HOLO_GREEN)
-            self.pct.setStyleSheet(f"font-size: 10px; color: {HOLO_GREEN}; font-family: '{FONT_FAMILY}';")
+            self.pct.setStyleSheet(f"font-size: 10px; color: {HOLO_GREEN}; font-family: '{FONT_FAMILY}'; background-color: transparent; border: none;")
             self.status.setText("Normal")
             self.status.setStyleSheet(f"font-size: 9px; color: {HOLO_GREEN}; background-color: rgba(52,168,83,0.1); border-radius: 8px; padding: 2px 4px; font-family: '{FONT_FAMILY}';")
 
@@ -342,13 +342,13 @@ class _NotesDialog(QDialog):
         title = QLabel("Add Doctor Notes  (optional)")
         title.setStyleSheet(
             f"font-size: 13px; font-weight: 700; color: {HOLO_BLUE_LIGHT}; "
-            f"font-family: '{FONT_FAMILY}';"
+            f"font-family: '{FONT_FAMILY}'; background-color: transparent; border: none;"
         )
         layout.addWidget(title)
 
         hint = QLabel("These notes will appear in the PDF report.  Leave blank to skip.")
         hint.setStyleSheet(
-            f"font-size: 10px; color: {HOLO_TEXT_SEC}; font-family: '{FONT_FAMILY}';"
+            f"font-size: 10px; color: {HOLO_TEXT_SEC}; font-family: '{FONT_FAMILY}'; background-color: transparent; border: none;"
         )
         hint.setWordWrap(True)
         layout.addWidget(hint)
@@ -467,7 +467,7 @@ class ScanDialog(QDialog):
         title = QLabel("NEMO SCAN  //  AI DIAGNOSTIC SYSTEM")
         title.setStyleSheet(
             f"font-size: 14px; font-weight: 700; color: {HOLO_BLUE_LIGHT}; "
-            f"font-family: '{FONT_FAMILY}'; letter-spacing: 3px;"
+            f"font-family: '{FONT_FAMILY}'; letter-spacing: 3px; background-color: transparent; border: none;"
         )
         self.status_lbl = QLabel("READY")
         self._set_status_style(HOLO_GREEN, "rgba(52,168,83,0.1)", "rgba(52,168,83,0.3)")
@@ -513,7 +513,7 @@ class ScanDialog(QDialog):
         pid_lbl = QLabel("PATIENT ID")
         pid_lbl.setFixedWidth(90)
         pid_lbl.setStyleSheet(
-            f"font-size: 10px; color: {HOLO_TEXT_SEC}; font-family: '{FONT_FAMILY}'; letter-spacing: 1px;"
+            f"font-size: 10px; color: {HOLO_TEXT_SEC}; font-family: '{FONT_FAMILY}'; letter-spacing: 1px; background-color: transparent; border: none;"
         )
 
         self.patient_id_field = QLineEdit()
@@ -528,13 +528,13 @@ class ScanDialog(QDialog):
 
         self.patient_name_lbl = QLabel("")
         self.patient_name_lbl.setStyleSheet(
-            f"font-size: 11px; color: {HOLO_BLUE_LIGHT}; font-family: '{FONT_FAMILY}';"
+            f"font-size: 11px; color: {HOLO_BLUE_LIGHT}; font-family: '{FONT_FAMILY}'; background-color: transparent; border: none;"
         )
 
         doc_name = self.doctor.get("name", "Doctor")
         doc_lbl = QLabel(f"Dr. {doc_name}")
         doc_lbl.setStyleSheet(
-            f"font-size: 11px; color: {HOLO_TEXT_SEC}; font-family: '{FONT_FAMILY}';"
+            f"font-size: 11px; color: {HOLO_TEXT_SEC}; font-family: '{FONT_FAMILY}'; background-color: transparent; border: none;"
         )
 
         self.patient_id_field.textChanged.connect(self._on_patient_id_changed)
@@ -574,7 +574,7 @@ class ScanDialog(QDialog):
 
         hint = QLabel("Upload a chest X-ray image to begin AI analysis")
         hint.setAlignment(Qt.AlignCenter)
-        hint.setStyleSheet(f"font-size: 11px; color: {HOLO_TEXT_SEC}; font-family: '{FONT_FAMILY}';")
+        hint.setStyleSheet(f"font-size: 11px; color: {HOLO_TEXT_SEC}; font-family: '{FONT_FAMILY}'; background-color: transparent; border: none;")
         ul.addWidget(hint)
 
         btn_row = QHBoxLayout()
@@ -615,7 +615,7 @@ class ScanDialog(QDialog):
 
         fmt = QLabel("Supported formats: JPEG, PNG, BMP, TIFF")
         fmt.setAlignment(Qt.AlignCenter)
-        fmt.setStyleSheet(f"font-size: 9px; color: {HOLO_TEXT_SEC}; font-family: '{FONT_FAMILY}';")
+        fmt.setStyleSheet(f"font-size: 9px; color: {HOLO_TEXT_SEC}; font-family: '{FONT_FAMILY}'; background-color: transparent; border: none;")
         ul.addWidget(fmt)
         layout.addWidget(upload_frame, 1)
 
@@ -688,10 +688,10 @@ class ScanDialog(QDialog):
         self.result_lbl = QLabel("ANALYZING...")
         self.result_lbl.setStyleSheet(
             f"font-size: 16px; font-weight: 700; color: {HOLO_BLUE_LIGHT}; "
-            f"font-family: '{FONT_FAMILY}'; letter-spacing: 2px;"
+            f"font-family: '{FONT_FAMILY}'; letter-spacing: 2px; background-color: transparent; border: none;"
         )
         self.conf_lbl = QLabel("Confidence: --")
-        self.conf_lbl.setStyleSheet(f"font-size: 11px; color: {HOLO_TEXT_SEC}; font-family: '{FONT_FAMILY}';")
+        self.conf_lbl.setStyleSheet(f"font-size: 11px; color: {HOLO_TEXT_SEC}; font-family: '{FONT_FAMILY}'; background-color: transparent; border: none;")
         rr.addWidget(self.result_lbl)
         rr.addWidget(self.conf_lbl)
         rr.addStretch()
@@ -705,9 +705,9 @@ class ScanDialog(QDialog):
         sl = QVBoxLayout(sf)
         sl.setContentsMargins(10, 8, 10, 8)
         sev_lbl = QLabel("SEVERITY")
-        sev_lbl.setStyleSheet(f"font-size: 8px; color: {HOLO_TEXT_SEC}; font-family: '{FONT_FAMILY}'; letter-spacing: 1px;")
+        sev_lbl.setStyleSheet(f"font-size: 8px; color: {HOLO_TEXT_SEC}; font-family: '{FONT_FAMILY}'; letter-spacing: 1px; background-color: transparent; border: none;")
         self.sev_val = QLabel("--")
-        self.sev_val.setStyleSheet(f"font-size: 14px; font-weight: 700; color: {HOLO_TEXT}; font-family: '{FONT_FAMILY}';")
+        self.sev_val.setStyleSheet(f"font-size: 14px; font-weight: 700; color: {HOLO_TEXT}; font-family: '{FONT_FAMILY}'; background-color: transparent; border: none;")
         sl.addWidget(sev_lbl)
         sl.addWidget(self.sev_val)
 
@@ -716,9 +716,9 @@ class ScanDialog(QDialog):
         sbl = QVBoxLayout(sbf)
         sbl.setContentsMargins(10, 8, 10, 8)
         sub_lbl = QLabel("SUBTYPE")
-        sub_lbl.setStyleSheet(f"font-size: 8px; color: {HOLO_TEXT_SEC}; font-family: '{FONT_FAMILY}'; letter-spacing: 1px;")
+        sub_lbl.setStyleSheet(f"font-size: 8px; color: {HOLO_TEXT_SEC}; font-family: '{FONT_FAMILY}'; letter-spacing: 1px; background-color: transparent; border: none;")
         self.sub_val = QLabel("--")
-        self.sub_val.setStyleSheet(f"font-size: 14px; font-weight: 700; color: {HOLO_TEXT}; font-family: '{FONT_FAMILY}';")
+        self.sub_val.setStyleSheet(f"font-size: 14px; font-weight: 700; color: {HOLO_TEXT}; font-family: '{FONT_FAMILY}'; background-color: transparent; border: none;")
         sbl.addWidget(sub_lbl)
         sbl.addWidget(self.sub_val)
         detail.addWidget(sf, 1)
@@ -741,7 +741,7 @@ class ScanDialog(QDialog):
             "QProgressBar::chunk { background-color: #4285F4; border-radius: 3px; }"
         )
         self.prog_lbl = QLabel("0 / 6 models complete")
-        self.prog_lbl.setStyleSheet(f"font-size: 9px; color: {HOLO_TEXT_SEC}; font-family: '{FONT_FAMILY}';")
+        self.prog_lbl.setStyleSheet(f"font-size: 9px; color: {HOLO_TEXT_SEC}; font-family: '{FONT_FAMILY}'; background-color: transparent; border: none;")
         pl.addWidget(self.overall_bar)
         pl.addWidget(self.prog_lbl)
         center.addWidget(pf)
@@ -792,7 +792,7 @@ class ScanDialog(QDialog):
         self.prob_pct = QLabel("0%")
         self.prob_pct.setAlignment(Qt.AlignCenter)
         self.prob_pct.setStyleSheet(
-            f"font-size: 20px; font-weight: 700; color: {HOLO_BLUE_LIGHT}; font-family: '{FONT_FAMILY}';"
+            f"font-size: 20px; font-weight: 700; color: {HOLO_BLUE_LIGHT}; font-family: '{FONT_FAMILY}'; background-color: transparent; border: none;"
         )
         cl.addWidget(self.prob_bar)
         cl.addWidget(self.prob_pct)
@@ -842,7 +842,7 @@ class ScanDialog(QDialog):
         lbl = QLabel(text)
         lbl.setStyleSheet(
             f"font-size: 10px; color: {HOLO_TEXT_SEC}; font-family: '{FONT_FAMILY}'; "
-            f"letter-spacing: 1px; margin-bottom: 4px;"
+            f"letter-spacing: 1px; margin-bottom: 4px; background-color: transparent; border: none;"
         )
         return lbl
 
@@ -1075,7 +1075,7 @@ class ScanDialog(QDialog):
         color = HOLO_RED if pred == 'PNEUMONIA' else HOLO_GREEN
         self.result_lbl.setStyleSheet(
             f"font-size: 16px; font-weight: 700; color: {color}; "
-            f"font-family: '{FONT_FAMILY}'; letter-spacing: 2px;"
+            f"font-family: '{FONT_FAMILY}'; letter-spacing: 2px; background-color: transparent; border: none;"
         )
         self.conf_lbl.setText(f"Confidence: {conf*100:.2f}%")
 
@@ -1119,7 +1119,7 @@ class ScanDialog(QDialog):
         self.result_lbl.setText("ANALYZING...")
         self.result_lbl.setStyleSheet(
             f"font-size: 16px; font-weight: 700; color: {HOLO_BLUE_LIGHT}; "
-            f"font-family: '{FONT_FAMILY}'; letter-spacing: 2px;"
+            f"font-family: '{FONT_FAMILY}'; letter-spacing: 2px; background-color: transparent; border: none;"
         )
         self.conf_lbl.setText("Confidence: --")
         self.sev_val.setText("--")

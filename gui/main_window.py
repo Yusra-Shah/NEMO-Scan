@@ -242,7 +242,7 @@ class MainWindow(QMainWindow):
         self.engine = engine
         self.setWindowTitle("NEMO Scan - Neural Engine for Medical Observation")
         self.setMinimumSize(1200, 750)
-        self.resize(1400, 900)
+        self.showMaximized()
         self.setStyleSheet(MAIN_STYLE)
         self._build_ui()
 
