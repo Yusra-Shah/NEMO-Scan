@@ -34,6 +34,3 @@ Thumbs.db
 *.zip
 *.tar
 *.tar.gz
-
-# RSNA dataset zip
-rsna-pneumonia-detection-challenge.zip
