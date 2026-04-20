@@ -474,6 +474,10 @@ class PatientsPanel(QWidget):
         outer.setContentsMargins(0, 0, 0, 0)
         outer.addWidget(self.stack)
 
+    def showEvent(self, event):
+        super().showEvent(event)
+        self.list_panel.refresh()
+
     def open_patient(self, patient: dict):
         """Called externally (e.g. from dashboard activity click)."""
         self._open_profile(patient)

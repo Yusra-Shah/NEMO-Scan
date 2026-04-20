@@ -379,8 +379,9 @@ class RegisterPatientDialog(QDialog):
 # ---------------------------------------------------------------------------
 
 class DashboardPanel(QWidget):
-    new_scan_requested    = Signal()
-    open_patient_profile  = Signal(dict)   # emits patient dict
+    new_scan_requested      = Signal()
+    open_patient_profile    = Signal(dict)
+    open_patients_requested = Signal()
 
     def __init__(self, doctor: dict, parent=None):
         super().__init__(parent)
@@ -414,8 +415,13 @@ class DashboardPanel(QWidget):
         upload_btn = _pill_btn("New Scan", height=40)
         upload_btn.clicked.connect(self.new_scan_requested.emit)
 
+        refresh_btn = _pill_btn("\u21bb Refresh", filled=False, color=BLUE, height=36)
+        refresh_btn.clicked.connect(self.refresh)
+
         header_row.addLayout(header_block)
         header_row.addStretch()
+        header_row.addWidget(refresh_btn, alignment=Qt.AlignBottom)
+        header_row.addSpacing(8)
         header_row.addWidget(upload_btn, alignment=Qt.AlignBottom)
         layout.addLayout(header_row)
         layout.addSpacing(32)
@@ -449,6 +455,7 @@ class DashboardPanel(QWidget):
 
         self.btn_new_patient.clicked.connect(self._open_register_patient)
         self.btn_new_scan.clicked.connect(self.new_scan_requested.emit)
+        self.btn_all_patients.clicked.connect(self.open_patients_requested.emit)
 
         for b in [self.btn_new_patient, self.btn_find_patient, self.btn_new_scan, self.btn_all_patients]:
             acts_row.addWidget(b)
@@ -528,10 +535,14 @@ class DashboardPanel(QWidget):
 
     def _on_activity_clicked(self, scan: dict):
         patient_id = scan.get("patient_id")
-        if patient_id:
+        if not patient_id:
+            return
+        try:
             patient = db.get_patient_by_id(patient_id)
             if patient:
                 self.open_patient_profile.emit(patient)
+        except Exception as e:
+            print(f"Could not load patient profile: {e}")
 
     def _open_register_patient(self):
         dlg = RegisterPatientDialog(self.doctor, self)

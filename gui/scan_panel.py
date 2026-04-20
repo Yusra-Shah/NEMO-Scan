@@ -545,6 +545,14 @@ class ScanDialog(QDialog):
         pid_row.addWidget(doc_lbl)
         layout.addWidget(pid_frame)
 
+        self.pid_error_lbl = QLabel("Patient ID not found. Please register the patient first.")
+        self.pid_error_lbl.setStyleSheet(
+            f"color: {HOLO_RED}; font-size: 10px; font-family: '{FONT_FAMILY}'; "
+            "background-color: transparent; border: none; padding: 2px 4px;"
+        )
+        self.pid_error_lbl.hide()
+        layout.addWidget(self.pid_error_lbl)
+
         # Upload zone
         upload_frame = GlowFrame()
         ul = QVBoxLayout(upload_frame)
@@ -575,23 +583,29 @@ class ScanDialog(QDialog):
 
         self.upload_btn = QPushButton("Upload from Device")
         self.upload_btn.setFixedSize(170, 38)
+        self.upload_btn.setEnabled(False)
         self.upload_btn.setCursor(QCursor(Qt.PointingHandCursor))
         self.upload_btn.setStyleSheet(
             f"QPushButton {{ background-color: {HOLO_BLUE}; color: white; border: none; "
             f"border-radius: {BTN_RADIUS}px; font-size: {FONT_BODY}px; font-weight: 600; "
             f"font-family: '{FONT_FAMILY}'; }}"
             f"QPushButton:hover {{ background-color: {HOLO_BLUE_GLOW}; }}"
+            f"QPushButton:disabled {{ background-color: rgba(66,133,244,0.2); "
+            f"color: rgba(255,255,255,0.3); }}"
         )
         self.upload_btn.clicked.connect(self._upload_file)
 
         self.paste_btn = QPushButton("Paste from Clipboard")
         self.paste_btn.setFixedSize(170, 38)
+        self.paste_btn.setEnabled(False)
         self.paste_btn.setCursor(QCursor(Qt.PointingHandCursor))
         self.paste_btn.setStyleSheet(
             f"QPushButton {{ background-color: transparent; color: {HOLO_BLUE_LIGHT}; "
             f"border: 1px solid {HOLO_BLUE}; border-radius: {BTN_RADIUS}px; "
             f"font-size: {FONT_BODY}px; font-weight: 600; font-family: '{FONT_FAMILY}'; }}"
             f"QPushButton:hover {{ background-color: rgba(66,133,244,0.12); }}"
+            f"QPushButton:disabled {{ color: rgba(137,180,250,0.25); "
+            f"border-color: rgba(66,133,244,0.2); }}"
         )
         self.paste_btn.clicked.connect(self._paste_clipboard)
 
@@ -854,22 +868,32 @@ class ScanDialog(QDialog):
         )
 
     def _on_patient_id_changed(self, text):
-        """Live lookup: show patient name as doctor types the ID."""
+        """Live lookup: validate patient ID and gate upload controls."""
         text = text.strip()
         if not text:
             self.patient_name_lbl.setText("")
             self.patient = None
+            self.pid_error_lbl.hide()
+            self._set_upload_enabled(False)
             return
         try:
             found = db.get_patient_by_id(text)
             if found:
                 self.patient = found
                 self.patient_name_lbl.setText(found.get("name", ""))
+                self.pid_error_lbl.hide()
+                self._set_upload_enabled(True)
             else:
                 self.patient = None
                 self.patient_name_lbl.setText("")
+                self.pid_error_lbl.show()
+                self._set_upload_enabled(False)
         except Exception:
             pass
+
+    def _set_upload_enabled(self, enabled: bool):
+        self.upload_btn.setEnabled(enabled)
+        self.paste_btn.setEnabled(enabled)
 
     # ------------------------------------------------------------------
     # File handling
@@ -1076,10 +1100,13 @@ class ScanDialog(QDialog):
         self._models_done = 0
         self._saved_scan_id = None
 
+        self.pid_error_lbl.hide()
         if not (self.patient and self.patient_id_field.isReadOnly()):
             self.patient = None
             self.patient_id_field.clear()
             self.patient_name_lbl.setText("")
+            self._set_upload_enabled(False)
+        # if patient was pre-filled (read-only), upload stays enabled
 
         self.preview.clear()
         self.preview.setText("X-RAY PREVIEW\n\nNo image loaded")

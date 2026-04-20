@@ -16,7 +16,7 @@ from PySide6.QtGui import QFont, QCursor, QIcon
 
 from gui.styles import (
     SURFACE, BORDER, TEXT, TEXT_SEC, BLUE, BLUE_TINT,
-    BG, SIDEBAR_W, FONT_FAMILY, FONT_BODY, FONT_LABEL,
+    BG, RED, SIDEBAR_W, FONT_FAMILY, FONT_BODY, FONT_LABEL,
     FONT_HEADER, MAIN_STYLE
 )
 from gui.dashboard import DashboardPanel
@@ -28,7 +28,8 @@ from gui.scan_panel import ScanDialog
 class Sidebar(QWidget):
     """Fixed left sidebar with navigation."""
 
-    nav_clicked = Signal(str)
+    nav_clicked    = Signal(str)
+    logout_clicked = Signal()
 
     def __init__(self, doctor: dict, parent=None):
         super().__init__(parent)
@@ -142,6 +143,29 @@ class Sidebar(QWidget):
         doc_row.addLayout(info)
         doc_row.addStretch()
         layout.addLayout(doc_row)
+        layout.addSpacing(12)
+
+        logout_btn = QPushButton("Logout")
+        logout_btn.setFixedHeight(36)
+        logout_btn.setFixedWidth(SIDEBAR_W - 32)
+        logout_btn.setCursor(QCursor(Qt.PointingHandCursor))
+        logout_btn.setFont(QFont(FONT_FAMILY, 12))
+        logout_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: transparent;
+                color: {RED};
+                border: 1.5px solid {RED};
+                border-radius: 18px;
+                font-family: '{FONT_FAMILY}';
+                font-size: 12px;
+            }}
+            QPushButton:hover {{
+                background-color: {RED};
+                color: white;
+            }}
+        """)
+        logout_btn.clicked.connect(self.logout_clicked.emit)
+        layout.addWidget(logout_btn)
 
         self._set_active("dashboard")
 
@@ -233,6 +257,7 @@ class MainWindow(QMainWindow):
 
         self.sidebar = Sidebar(self.doctor)
         self.sidebar.nav_clicked.connect(self._on_nav)
+        self.sidebar.logout_clicked.connect(self._logout)
         root.addWidget(self.sidebar)
 
         self.stack = QStackedWidget()
@@ -251,7 +276,24 @@ class MainWindow(QMainWindow):
         # Wire cross-panel signals
         self.dashboard.new_scan_requested.connect(self._open_scan_dialog)
         self.dashboard.open_patient_profile.connect(self._open_patient_profile)
+        self.dashboard.open_patients_requested.connect(lambda: self._on_nav("patients"))
         self.patients.new_scan_requested.connect(self._open_scan_dialog)
+
+    def _logout(self):
+        from gui.login_screen import LoginScreen
+        login = LoginScreen()
+        login.resize(1000, 650)
+
+        def _on_new_login(doctor: dict):
+            new_win = MainWindow(doctor=doctor, engine=self.engine)
+            new_win.show()
+            self._next_window = new_win  # prevent GC
+            login.close()
+            self.close()
+
+        login.login_success.connect(_on_new_login)
+        self._login_ref = login  # prevent GC
+        login.show()
 
     def _on_nav(self, key: str):
         if key == "dashboard":

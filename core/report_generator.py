@@ -2,8 +2,7 @@
 NEMO Scan - PDF Report Generator
 core/report_generator.py
 
-Generates a bilingual (English + phonetic Urdu transliteration) A4 PDF report
-using ReportLab built-in fonts only.  No external font files required.
+Generates an English A4 PDF diagnostic report using ReportLab built-in fonts.
 
 Public API:
     generate_report(patient, doctor, result, model_votes, scan_date,
@@ -12,6 +11,7 @@ Public API:
 """
 
 import os
+import re
 from datetime import datetime, timezone
 
 from reportlab.lib.pagesizes import A4
@@ -55,44 +55,6 @@ MODEL_DISPLAY = {
 }
 
 # ---------------------------------------------------------------------------
-# Phonetic Urdu transliteration strings
-# ---------------------------------------------------------------------------
-UR = {
-    "section_title":    "NEMO Scan - Tebbi Rport (Urdu Tarjuma)",
-    "disclaimer":       "Yeh report sirf ilmi aur mahiraana maqasid ke liye hai. "
-                        "Final tashkhees ke liye apne doctor se rabta zaroor karein.",
-    "patient_info":     "Mareez ki Malomat",
-    "patient_name":     "Naam",
-    "patient_id":       "Mareez ID",
-    "age":              "Umar",
-    "gender":           "Jins",
-    "doctor_info":      "Doctor ki Malomat",
-    "doctor_name":      "Doctor",
-    "specialization":   "Ikhtiyas",
-    "scan_date":        "Scan ki Tarikh",
-    "diagnosis":        "Tashkhees",
-    "NORMAL":           "THEEK  (Normal)",
-    "PNEUMONIA":        "NIZMONIA  (Phephron ka Infection)",
-    "confidence":       "Yaqeen (Confidence)",
-    "ensemble":         "Majmui Imkan",
-    "severity":         "Shaddat",
-    "subtype":          "Nau",
-    "notes":            "Doctor ke Notes",
-    "model_votes":      "AI Models ki Raay",
-    "positive":         "Positive (Mareezi)",
-    "normal_verdict":   "Normal (Theek)",
-    "severity_None":    "Koi nahi",
-    "severity_Mild":    "Halka",
-    "severity_Moderate":"Mutawasit",
-    "severity_Severe":  "Shadeed",
-    "subtype_NA":       "Maloom nahi",
-    "subtype_Bacterial":"Bacterial",
-    "subtype_Viral":    "Viral",
-    "no_notes":         "(Koi notes nahi)",
-}
-
-
-# ---------------------------------------------------------------------------
 # Style factory
 # ---------------------------------------------------------------------------
 
@@ -109,9 +71,6 @@ def _styles():
         "diag_pneu":  ParagraphStyle("diag_pneu",  fontName="Helvetica-Bold",    fontSize=22, leading=28, textColor=C_RED,    alignment=TA_CENTER),
         "center":     ParagraphStyle("center",     fontName="Helvetica",         fontSize=9,  leading=13, textColor=C_DARK,   alignment=TA_CENTER),
         "bold_center":ParagraphStyle("bold_center",fontName="Helvetica-Bold",    fontSize=9,  leading=13, textColor=C_DARK,   alignment=TA_CENTER),
-        "urdu_title": ParagraphStyle("urdu_title", fontName="Helvetica-Bold",    fontSize=10, leading=14, textColor=C_BLUE),
-        "urdu_normal":ParagraphStyle("urdu_normal",fontName="Helvetica",         fontSize=8,  leading=12, textColor=C_DARK),
-        "urdu_small": ParagraphStyle("urdu_small", fontName="Helvetica",         fontSize=7,  leading=11, textColor=C_SEC),
         "footer":     ParagraphStyle("footer",     fontName="Helvetica-Oblique", fontSize=7,  leading=10, textColor=C_SEC,    alignment=TA_CENTER),
         "notes":      ParagraphStyle("notes",      fontName="Helvetica",         fontSize=9,  leading=14, textColor=C_DARK),
     }
@@ -308,52 +267,6 @@ def _model_votes_table(model_votes, styles, page_w):
 
 
 # ---------------------------------------------------------------------------
-# Urdu transliteration section
-# ---------------------------------------------------------------------------
-
-def _urdu_section(patient, doctor, prediction, confidence, ensemble_prob,
-                  severity, subtype, doctor_notes, styles):
-    is_pneu = "PNEUMONIA" in prediction.upper()
-    diag_ur = UR["PNEUMONIA"] if is_pneu else UR["NORMAL"]
-    sev_ur  = UR.get(f"severity_{severity}", str(severity))
-    sub_ur  = UR.get(f"subtype_{subtype}", str(subtype)) if subtype else UR["subtype_NA"]
-
-    flowables = [
-        HRFlowable(width="100%", thickness=1, color=C_BORDER, spaceBefore=6, spaceAfter=6),
-        Paragraph(UR["section_title"], styles["urdu_title"]),
-        Spacer(1, 4 * mm),
-        Paragraph(f"<b>{UR['patient_info']}</b>", styles["urdu_normal"]),
-    ]
-
-    info_rows = [
-        (UR["patient_name"],   patient.get("name", "-")),
-        (UR["patient_id"],     patient.get("patient_id", "-")),
-        (UR["age"],            str(patient.get("age", "-"))),
-        (UR["gender"],         patient.get("gender", "-")),
-        (UR["doctor_name"],    f"Dr. {doctor.get('name', '-')}"),
-        (UR["specialization"], doctor.get("specialization", "-")),
-    ]
-    for lbl, val in info_rows:
-        flowables.append(
-            Paragraph(f"<b>{lbl}:</b>  {val}", styles["urdu_normal"])
-        )
-
-    flowables += [
-        Spacer(1, 3 * mm),
-        Paragraph(f"<b>{UR['diagnosis']}:</b>  {diag_ur}", styles["urdu_normal"]),
-        Paragraph(f"<b>{UR['confidence']}:</b>  {confidence * 100:.1f}%", styles["urdu_normal"]),
-        Paragraph(f"<b>{UR['ensemble']}:</b>  {ensemble_prob * 100:.1f}%", styles["urdu_normal"]),
-        Paragraph(f"<b>{UR['severity']}:</b>  {sev_ur}", styles["urdu_normal"]),
-        Paragraph(f"<b>{UR['subtype']}:</b>  {sub_ur}", styles["urdu_normal"]),
-        Spacer(1, 3 * mm),
-        Paragraph(f"<b>{UR['notes']}:</b>  {doctor_notes or UR['no_notes']}", styles["urdu_normal"]),
-        Spacer(1, 4 * mm),
-        Paragraph(UR["disclaimer"], styles["urdu_small"]),
-    ]
-    return flowables
-
-
-# ---------------------------------------------------------------------------
 # Main entry point
 # ---------------------------------------------------------------------------
 
@@ -378,9 +291,10 @@ def generate_report(
     """
     os.makedirs(output_dir, exist_ok=True)
 
-    patient_id = patient.get("patient_id", "UNKNOWN")
-    ts         = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-    filename   = f"NEMO_Report_{patient_id}_{ts}.pdf"
+    patient_id        = patient.get("patient_id", "UNKNOWN")
+    patient_name_safe = re.sub(r'[^A-Za-z0-9]', '_', patient.get("name", "Unknown").replace(' ', '_'))
+    ts                = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    filename          = f"report_{patient_id}_{patient_name_safe}_{ts}.pdf"
     filepath   = os.path.join(output_dir, filename)
 
     prediction    = result.get("prediction", "Unknown")
@@ -544,15 +458,6 @@ def generate_report(
         ("RIGHTPADDING", (0, 0), (-1, -1), 10),
     ]))
     story.append(notes_tbl)
-    story.append(Spacer(1, 8 * mm))
-
-    # ------------------------------------------------------------------
-    # Urdu transliteration section
-    # ------------------------------------------------------------------
-    story += _urdu_section(
-        patient, doctor, prediction, confidence, ensemble_prob,
-        severity, subtype, doctor_notes, styles,
-    )
 
     doc.build(story)
     return os.path.abspath(filepath)
