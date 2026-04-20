@@ -40,8 +40,11 @@ FONT_BODY    = 12
 FONT_LABEL   = 10
 
 MAIN_STYLE = f"""
-* {{ font-family: '{FONT_FAMILY}'; font-size: {FONT_BODY}px; color: {TEXT}; }}
-QMainWindow, QWidget {{ background-color: {BG}; }}
+* {{ font-family: '{FONT_FAMILY}'; font-size: {FONT_BODY}px; }}
+QMainWindow, QWidget {{ color: {TEXT}; }}
+QMainWindow {{ background-color: {BG}; }}
+QWidget#main_window {{ background-color: {BG}; }}
+QLabel {{ background-color: transparent; border: none; color: {TEXT}; }}
 QWidget#sidebar {{ background-color: {SURFACE}; border-right: 1px solid {BORDER}; }}
 QWidget#content_area {{ background-color: {BG}; }}
 QFrame#card {{

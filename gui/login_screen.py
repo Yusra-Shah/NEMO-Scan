@@ -37,7 +37,7 @@ def _label(text, size=12, color=TEXT, bold=False):
     f = QFont(FONT, size)
     f.setBold(bold)
     l.setFont(f)
-    l.setStyleSheet(f"color: {color}; background: transparent;")
+    l.setStyleSheet(f"color: {color}; background-color: transparent; border: none;")
     return l
 
 
@@ -114,6 +114,10 @@ class LoginCard(QFrame):
                 background: {SURFACE};
                 border: 1px solid {BORDER};
                 border-radius: 20px;
+            }}
+            QLabel {{
+                background-color: transparent;
+                border: none;
             }}
         """)
 
@@ -238,6 +242,10 @@ class RegisterCard(QFrame):
                 background: {SURFACE};
                 border: 1px solid {BORDER};
                 border-radius: 20px;
+            }}
+            QLabel {{
+                background-color: transparent;
+                border: none;
             }}
         """)
 
