@@ -10,6 +10,7 @@ import os
 import sys
 import base64
 import asyncio
+import random
 import tempfile
 from pathlib import Path
 from datetime import datetime, timezone
@@ -45,10 +46,15 @@ _engine = None
 @app.on_event("startup")
 async def _startup():
     global _engine
+    weights_dir = os.path.join(ROOT, "weights", "lung")
+    pth_files = list(Path(weights_dir).glob("*.pth")) if os.path.isdir(weights_dir) else []
+    if not pth_files:
+        print("No .pth weight files found — running in demo mode.")
+        _engine = None
+        return
     try:
         from core.inference.engine import InferenceEngine
         _engine = InferenceEngine()
-        weights_dir = os.path.join(ROOT, "weights", "lung")
         await asyncio.get_event_loop().run_in_executor(
             None, _engine.load_models, weights_dir
         )
@@ -96,14 +102,12 @@ async def scan(
     patient_id:  str        = Form(""),
     doctor_name: str        = Form(""),
 ):
-    import random, time
-
     raw = await image.read()
     image_b64 = base64.b64encode(raw).decode()
 
     # ── Demo mode: engine weights not loaded (too large for HF free tier) ──────
     if _engine is None:
-        await asyncio.sleep(2.5)          # simulate inference latency
+        await asyncio.sleep(0.5)          # simulate inference latency
         votes = {
             "mobilenetv3":     round(random.uniform(0.82, 0.92), 3),
             "resnet50":        round(random.uniform(0.88, 0.95), 3),

@@ -1177,8 +1177,8 @@ $('analyze-btn').onclick = async () => {
 
 function renderScanResult(r) {
   const pred = r.prediction || '';
-  const conf = (r.confidence||0)*100;
-  const prob = (r.ensemble_prob||r.confidence||0)*100;
+  const conf = Number(r.confidence || r.ensemble_prob || 0) * 100;
+  const prob = Number(r.ensemble_prob || r.confidence || 0) * 100;
   const isPneu = pred.toUpperCase()==='PNEUMONIA';
   const color  = isPneu ? '#EA4335' : '#34A853';
 
@@ -1198,16 +1198,16 @@ function renderScanResult(r) {
   const votes = r.model_votes || {};
   const barEls = document.querySelectorAll('.mvb');
   barEls.forEach(row => {
-    const key  = row.dataset.key;
-    const prob = votes[key] ?? 0;
-    const pct  = (prob*100).toFixed(0);
-    const isP  = prob >= 0.5;
-    const fg   = isP ? '#EA4335' : '#34A853';
-    const bg   = isP ? 'rgba(234,67,53,.1)' : 'rgba(52,168,83,.1)';
-    row.querySelector('.mvb-fill').style.width     = pct+'%';
+    const key   = row.dataset.key;
+    const voteP = Number(votes[key]) || 0;
+    const pct   = (voteP * 100).toFixed(0);
+    const isP   = voteP >= 0.5;
+    const fg    = isP ? '#EA4335' : '#34A853';
+    const bg    = isP ? 'rgba(234,67,53,.1)' : 'rgba(52,168,83,.1)';
+    row.querySelector('.mvb-fill').style.width      = pct+'%';
     row.querySelector('.mvb-fill').style.background = fg;
-    row.querySelector('.mvb-pct').textContent       = pct+'%';
-    row.querySelector('.mvb-pct').style.color       = fg;
+    row.querySelector('.mvb-pct').textContent        = pct+'%';
+    row.querySelector('.mvb-pct').style.color        = fg;
     const st = row.querySelector('.mvb-status');
     st.textContent      = isP ? 'Positive' : 'Normal';
     st.style.color      = fg;
