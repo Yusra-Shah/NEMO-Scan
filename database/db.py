@@ -234,7 +234,8 @@ def search_patients(query: str, doctor_id: Optional[str] = None) -> list:
         "$or": [
             {"name": {"$regex": query, "$options": "i"}},
             {"patient_id": {"$regex": query, "$options": "i"}},
-        ]
+        ],
+        "is_active": {"$ne": False},
     }
     if doctor_id:
         text_filter["assigned_doctor_id"] = doctor_id
@@ -245,7 +246,9 @@ def search_patients(query: str, doctor_id: Optional[str] = None) -> list:
 
 def get_all_patients(doctor_id: Optional[str] = None, limit: int = 200) -> list:
     db = get_db()
-    filt = {"assigned_doctor_id": doctor_id} if doctor_id else {}
+    filt: dict = {"is_active": {"$ne": False}}
+    if doctor_id:
+        filt["assigned_doctor_id"] = doctor_id
     cursor = db.patients.find(filt).sort("created_at", DESCENDING).limit(limit)
     return [{k: v for k, v in doc.items() if k != "_id"} for doc in cursor]
 
@@ -273,6 +276,26 @@ def update_patient_info(patient_id: str, updates: dict, doctor_id: str) -> bool:
                 session=session,
             )
 
+    return result.modified_count > 0
+
+
+def deactivate_patient(patient_id: str, doctor_id: str) -> bool:
+    """Soft-delete a patient by setting is_active: False. Data is preserved."""
+    db = get_db()
+    with _client.start_session() as session:
+        with session.start_transaction():
+            result = db.patients.update_one(
+                {"patient_id": patient_id},
+                {"$set": {"is_active": False, "deactivated_at": _now()}},
+                session=session,
+            )
+            _write_audit(
+                action="patient_deactivated",
+                doctor_id=doctor_id,
+                patient_id=patient_id,
+                details={},
+                session=session,
+            )
     return result.modified_count > 0
 
 
@@ -384,10 +407,10 @@ def save_scan(
 
 
 def get_scans_for_patient(patient_id: str, limit: int = 100) -> list:
-    """Return all scans for a patient, newest first."""
+    """Return all active scans for a patient, newest first."""
     db = get_db()
     cursor = (
-        db.scans.find({"patient_id": patient_id})
+        db.scans.find({"patient_id": patient_id, "is_active": {"$ne": False}})
         .sort("scan_date", DESCENDING)
         .limit(limit)
     )
@@ -425,6 +448,26 @@ def update_scan_report_path(scan_id: str, report_path: str) -> bool:
         {"scan_id": scan_id},
         {"$set": {"report_path": report_path}},
     )
+    return result.modified_count > 0
+
+
+def deactivate_scan(scan_id: str, doctor_id: str) -> bool:
+    """Soft-delete a scan by setting is_active: False. Data is preserved."""
+    db = get_db()
+    with _client.start_session() as session:
+        with session.start_transaction():
+            result = db.scans.update_one(
+                {"scan_id": scan_id},
+                {"$set": {"is_active": False}},
+                session=session,
+            )
+            _write_audit(
+                action="scan_deactivated",
+                doctor_id=doctor_id,
+                scan_id=scan_id,
+                details={},
+                session=session,
+            )
     return result.modified_count > 0
 
 
