@@ -253,8 +253,13 @@ def get_all_patients(doctor_id: Optional[str] = None, limit: int = 200) -> list:
     return [{k: v for k, v in doc.items() if k != "_id"} for doc in cursor]
 
 
-def update_patient_info(patient_id: str, updates: dict, doctor_id: str) -> bool:
-    """Update editable patient fields."""
+def update_patient_info(
+    patient_id: str,
+    updates: dict,
+    doctor_id: str,
+    doctor_name: str = "",
+) -> bool:
+    """Update editable patient fields. Wraps in transaction + audit log."""
     db = get_db()
     allowed = {"name", "age", "gender", "contact", "symptoms", "medical_history"}
     safe_updates = {k: v for k, v in updates.items() if k in allowed}
@@ -272,7 +277,10 @@ def update_patient_info(patient_id: str, updates: dict, doctor_id: str) -> bool:
                 action="patient_updated",
                 doctor_id=doctor_id,
                 patient_id=patient_id,
-                details={"fields_updated": list(safe_updates.keys())},
+                details={
+                    "fields_updated": list(safe_updates.keys()),
+                    "changed_by": doctor_name,
+                },
                 session=session,
             )
 
@@ -451,21 +459,54 @@ def update_scan_report_path(scan_id: str, report_path: str) -> bool:
     return result.modified_count > 0
 
 
-def deactivate_scan(scan_id: str, doctor_id: str) -> bool:
-    """Soft-delete a scan by setting is_active: False. Data is preserved."""
+def _recalculate_patient_scan_stats(patient_id: str, session=None) -> None:
+    """Recompute total_scans, last_scan_date, last_diagnosis from active scans only."""
+    db = get_db()
+    active = list(
+        db.scans.find(
+            {"patient_id": patient_id, "is_active": {"$ne": False}},
+            {"result.prediction": 1, "scan_date": 1},
+            session=session,
+        ).sort("scan_date", DESCENDING)
+    )
+    total     = len(active)
+    last_date = active[0]["scan_date"] if active else None
+    last_diag = active[0].get("result", {}).get("prediction") if active else None
+    update_kw = {"session": session} if session else {}
+    db.patients.update_one(
+        {"patient_id": patient_id},
+        {"$set": {
+            "total_scans":    total,
+            "last_scan_date": last_date,
+            "last_diagnosis": last_diag,
+        }},
+        **update_kw,
+    )
+
+
+def deactivate_scan(scan_id: str, doctor_id: str, doctor_name: str = "") -> bool:
+    """Soft-delete a scan, stamp deleted_at, and recalculate patient stats."""
     db = get_db()
     with _client.start_session() as session:
         with session.start_transaction():
+            scan = db.scans.find_one(
+                {"scan_id": scan_id}, {"patient_id": 1}, session=session
+            )
+            if not scan:
+                return False
+            patient_id = scan["patient_id"]
+
             result = db.scans.update_one(
                 {"scan_id": scan_id},
-                {"$set": {"is_active": False}},
+                {"$set": {"is_active": False, "deleted_at": _now()}},
                 session=session,
             )
+            _recalculate_patient_scan_stats(patient_id, session=session)
             _write_audit(
                 action="scan_deactivated",
                 doctor_id=doctor_id,
                 scan_id=scan_id,
-                details={},
+                details={"patient_id": patient_id, "changed_by": doctor_name},
                 session=session,
             )
     return result.modified_count > 0
@@ -506,7 +547,7 @@ def get_dashboard_stats(doctor_id: str) -> dict:
                 "pneumonia": {
                     "$sum": {
                         "$cond": [
-                            {"$eq": ["$result.prediction", "Pneumonia"]},
+                            {"$in": ["$result.prediction", ["Pneumonia", "PNEUMONIA", "pneumonia"]]},
                             1,
                             0,
                         ]

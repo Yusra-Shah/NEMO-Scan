@@ -1201,15 +1201,77 @@ class ScanDialog(QDialog):
             self.report_btn.setEnabled(True)
 
     def _show_report_success(self, pdf_path: str):
-        msg = QMessageBox(self)
-        msg.setWindowTitle("Report Generated")
-        msg.setIcon(QMessageBox.Information)
-        msg.setText("PDF report generated successfully.")
-        msg.setInformativeText(pdf_path)
-        open_btn = msg.addButton("Open File", QMessageBox.ActionRole)
-        msg.addButton("OK", QMessageBox.AcceptRole)
-        msg.exec()
-        if msg.clickedButton() == open_btn:
+        dlg = QDialog(self)
+        dlg.setWindowTitle("Report Generated")
+        dlg.setFixedWidth(460)
+        dlg.setModal(True)
+        dlg.setStyleSheet(
+            f"background-color: rgba(10,25,50,0.98); "
+            f"border: 1px solid rgba(66,133,244,0.5); border-radius: 12px;"
+        )
+
+        layout = QVBoxLayout(dlg)
+        layout.setContentsMargins(24, 20, 24, 20)
+        layout.setSpacing(12)
+
+        title = QLabel("Report Generated Successfully")
+        title.setStyleSheet(
+            f"font-size: 13px; font-weight: 700; color: {HOLO_GREEN}; "
+            f"font-family: '{FONT_FAMILY}'; background-color: transparent; border: none;"
+        )
+        layout.addWidget(title)
+
+        msg_lbl = QLabel("PDF report saved to:")
+        msg_lbl.setStyleSheet(
+            f"font-size: 11px; color: {HOLO_TEXT}; font-family: '{FONT_FAMILY}'; "
+            "background-color: transparent; border: none;"
+        )
+        layout.addWidget(msg_lbl)
+
+        path_lbl = QLabel(pdf_path)
+        path_lbl.setWordWrap(True)
+        path_lbl.setStyleSheet(
+            f"font-size: 10px; color: {HOLO_BLUE_LIGHT}; font-family: '{FONT_FAMILY}'; "
+            f"background-color: rgba(15,35,70,0.9); border: 1px solid rgba(66,133,244,0.4); "
+            f"border-radius: 8px; padding: 8px 10px;"
+        )
+        layout.addWidget(path_lbl)
+
+        btn_row = QHBoxLayout()
+        ok_btn = QPushButton("OK")
+        ok_btn.setFixedHeight(36)
+        ok_btn.setCursor(QCursor(Qt.PointingHandCursor))
+        ok_btn.setStyleSheet(
+            f"QPushButton {{ background-color: transparent; color: {HOLO_TEXT_SEC}; "
+            f"border: 1px solid rgba(66,133,244,0.3); border-radius: {BTN_RADIUS}px; "
+            f"font-size: {FONT_BODY}px; font-family: '{FONT_FAMILY}'; }}"
+            f"QPushButton:hover {{ color: {HOLO_BLUE_LIGHT}; }}"
+        )
+        ok_btn.clicked.connect(dlg.accept)
+
+        open_btn = QPushButton("Open File")
+        open_btn.setFixedHeight(36)
+        open_btn.setCursor(QCursor(Qt.PointingHandCursor))
+        open_btn.setStyleSheet(
+            f"QPushButton {{ background-color: {HOLO_BLUE}; color: white; border: none; "
+            f"border-radius: {BTN_RADIUS}px; font-size: {FONT_BODY}px; font-weight: 600; "
+            f"font-family: '{FONT_FAMILY}'; }}"
+            f"QPushButton:hover {{ background-color: {HOLO_BLUE_GLOW}; }}"
+        )
+        _open = [False]
+        def _on_open():
+            _open[0] = True
+            dlg.accept()
+        open_btn.clicked.connect(_on_open)
+
+        btn_row.addWidget(ok_btn)
+        btn_row.addStretch()
+        btn_row.addWidget(open_btn)
+        layout.addLayout(btn_row)
+
+        dlg.exec()
+
+        if _open[0]:
             import subprocess, sys as _sys
             if _sys.platform.startswith("win"):
                 os.startfile(pdf_path)
