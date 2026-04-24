@@ -1,0 +1,1367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEMO Scan — Neural Engine for Medical Observation</title>
+<style>
+:root {
+  --bg:#F8F9FA; --surface:#FFFFFF; --border:#E8EAED;
+  --text:#202124; --text-sec:#5F6368;
+  --blue:#4285F4; --red:#EA4335; --green:#34A853; --yellow:#FBBC05;
+  --blue-tint:#E8F0FE; --red-tint:#FCE8E6; --green-tint:#E6F4EA; --yellow-tint:#FEF7E0;
+  --holo-bg:#050A14; --holo-blue:#4285F4; --holo-glow:#1A73E8;
+  --holo-light:#89B4FA; --holo-text:#E8F0FE; --holo-sec:#8AB4F8;
+  --holo-green:#34A853; --holo-red:#EA4335;
+  --sidebar:240px; --card-r:16px; --btn-r:20px; --pad:40px;
+  --font:'Segoe UI',system-ui,sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);font-size:12px;color:var(--text);background:var(--bg);height:100vh;overflow:hidden}
+.hidden{display:none!important}
+button{font-family:var(--font);cursor:pointer}
+input,select,textarea{font-family:var(--font)}
+
+/* ── Views ──────────────────────────────────────────────────── */
+.view{position:fixed;inset:0}
+
+/* ── Login ─────────────────────────────────────────────────── */
+#v-login{background:var(--bg);display:flex;align-items:center;justify-content:center}
+.login-card{background:var(--surface);border-radius:20px;width:420px;padding:44px 40px;box-shadow:0 2px 24px rgba(0,0,0,.08)}
+.nemo-mark{font-size:32px;font-weight:800;letter-spacing:-1px;margin-bottom:6px;line-height:1}
+.nemo-mark .n{color:#4285F4}.nemo-mark .e{color:#EA4335}
+.nemo-mark .m{color:#FBBC05}.nemo-mark .o{color:#34A853}
+.nemo-mark .s{color:var(--text);font-weight:700;margin-left:5px}
+.login-sub{font-size:11px;color:var(--text-sec);margin-bottom:32px}
+.f-label{font-size:11px;color:var(--text-sec);margin-bottom:6px;display:block}
+.f-input{
+  width:100%;height:44px;border:1.5px solid var(--border);border-radius:22px;
+  padding:0 16px;font-size:13px;color:var(--text);background:var(--surface);
+  outline:none;transition:border-color .15s;margin-bottom:16px
+}
+.f-input:focus{border-color:var(--blue)}
+.login-btn{
+  width:100%;height:44px;background:var(--blue);color:#fff;border:none;
+  border-radius:22px;font-size:13px;font-weight:600;transition:background .15s;margin-top:8px
+}
+.login-btn:hover{background:#1A73E8}
+.login-btn:disabled{background:#a0c2fb;cursor:not-allowed}
+.login-err{font-size:11px;color:var(--red);margin-top:10px;min-height:16px}
+
+/* ── App layout ─────────────────────────────────────────────── */
+#v-app{display:flex;flex-direction:row;background:var(--bg)}
+#sidebar{
+  width:var(--sidebar);min-width:var(--sidebar);background:var(--surface);
+  border-right:1px solid var(--border);display:flex;flex-direction:column;
+  padding:24px 16px;height:100vh;overflow:hidden
+}
+.sb-logo-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.sb-logo-icon{
+  width:32px;height:32px;background:var(--blue);color:#fff;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;font-weight:800;flex-shrink:0
+}
+.sb-logo-text{font-size:15px;font-weight:700;color:var(--text)}
+.sb-version{font-size:10px;color:var(--text-sec);padding-left:4px;margin-bottom:24px}
+.sb-div{height:1px;background:var(--border);margin:0 -4px 16px}
+.nav-btn{
+  display:block;width:100%;height:40px;text-align:left;padding:0 12px;
+  background:transparent;border:none;border-radius:10px;font-size:12px;
+  color:var(--text-sec);transition:background .1s,color .1s;margin-bottom:4px
+}
+.nav-btn:hover{background:var(--blue-tint);color:var(--blue)}
+.nav-btn.active{background:var(--blue-tint);color:var(--blue);font-weight:600}
+.sb-spacer{flex:1}
+.sb-doc{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.doc-av{
+  width:32px;height:32px;background:var(--blue-tint);color:var(--blue);
+  border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;flex-shrink:0
+}
+.doc-name{font-size:12px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:150px}
+.doc-spec{font-size:10px;color:var(--text-sec);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:150px}
+.logout-btn{
+  width:100%;height:36px;background:transparent;color:var(--red);
+  border:1.5px solid var(--red);border-radius:18px;font-size:12px;
+  transition:background .15s,color .15s
+}
+.logout-btn:hover{background:var(--red);color:#fff}
+
+/* ── Content area ───────────────────────────────────────────── */
+#content{flex:1;overflow-y:auto;height:100vh}
+.panel{min-height:100%;padding:var(--pad)}
+
+/* ── Shared buttons ─────────────────────────────────────────── */
+.btn-primary{
+  background:var(--blue);color:#fff;border:none;border-radius:var(--btn-r);
+  padding:0 20px;height:40px;font-size:12px;font-weight:600;white-space:nowrap;transition:background .15s
+}
+.btn-primary:hover{background:#1A73E8}
+.btn-outline{
+  background:transparent;color:var(--blue);border:1.5px solid var(--blue);
+  border-radius:var(--btn-r);padding:0 20px;height:40px;font-size:12px;
+  font-weight:600;white-space:nowrap;transition:background .15s
+}
+.btn-outline:hover{background:var(--blue-tint)}
+.btn-sm{height:36px;padding:0 16px;font-size:11px}
+.btn-danger{
+  background:transparent;color:var(--red);border:1.5px solid var(--red);
+  border-radius:var(--btn-r);padding:0 16px;height:36px;font-size:11px;
+  font-weight:600;transition:background .15s
+}
+.btn-danger:hover{background:var(--red-tint)}
+
+/* ── Dashboard ──────────────────────────────────────────────── */
+.dash-hdr{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:32px}
+.dash-greeting{font-size:22px;font-weight:700;color:var(--text)}
+.dash-sub{font-size:12px;color:var(--text-sec);margin-top:4px}
+.dash-btns{display:flex;gap:8px}
+.metric-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:32px}
+.metric-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--card-r);
+  padding:20px 24px;min-height:120px;transition:border-color .15s
+}
+.metric-card:hover{border-color:var(--blue)}
+.metric-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.metric-title{font-size:10px;font-weight:600;color:var(--text-sec);letter-spacing:.5px;text-transform:uppercase}
+.metric-dot{width:10px;height:10px;border-radius:50%}
+.metric-val{font-size:28px;font-weight:700;color:var(--text);line-height:1.1;margin-bottom:4px}
+.metric-sub{font-size:10px;color:var(--text-sec)}
+.sec-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:12px}
+.quick-actions{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:32px}
+.activity-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--card-r);overflow:hidden}
+.act-row{
+  display:flex;align-items:center;height:68px;padding:0 16px;
+  border-left:3px solid transparent;gap:12px;cursor:pointer;transition:background .1s
+}
+.act-row:hover{background:var(--bg)}
+.act-row+.act-row{border-top:1px solid var(--border)}
+.act-name{font-size:12px;font-weight:600;color:var(--text)}
+.act-time{font-size:10px;color:var(--text-sec);margin-top:2px}
+.act-conf{font-size:10px;color:var(--text-sec);margin-right:12px;white-space:nowrap}
+.badge{font-size:10px;font-weight:600;padding:2px 10px;border-radius:11px;white-space:nowrap}
+.badge-p{background:var(--red-tint);color:var(--red)}
+.badge-n{background:var(--green-tint);color:var(--green)}
+.act-empty{padding:48px 16px;text-align:center;color:var(--text-sec)}
+
+/* ── Patients ───────────────────────────────────────────────── */
+.pat-layout{display:flex;gap:24px}
+.pat-list-col{width:300px;min-width:300px}
+.pat-detail-col{flex:1;min-width:0}
+.search-inp{
+  width:100%;height:40px;border:1.5px solid var(--border);border-radius:20px;
+  padding:0 16px;font-size:12px;color:var(--text);outline:none;margin-bottom:12px
+}
+.search-inp:focus{border-color:var(--blue)}
+.pat-item{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--card-r);
+  padding:12px 16px;cursor:pointer;margin-bottom:8px;transition:border-color .1s
+}
+.pat-item:hover{border-color:var(--blue)}
+.pat-item.sel{border-color:var(--blue);background:var(--blue-tint)}
+.pi-name{font-size:13px;font-weight:600;color:var(--text)}
+.pi-sub{font-size:10px;color:var(--text-sec);margin-top:2px}
+.pat-detail{background:var(--surface);border:1px solid var(--border);border-radius:var(--card-r);padding:24px}
+.pd-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:8px}
+.pd-name{font-size:20px;font-weight:700;color:var(--text)}
+.pd-id{font-size:10px;color:var(--text-sec);margin-top:2px}
+.pd-btns{display:flex;gap:8px;flex-wrap:wrap}
+.info-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px}
+.info-stat{background:var(--bg);border-radius:10px;padding:12px 14px}
+.is-label{font-size:10px;color:var(--text-sec);margin-bottom:4px}
+.is-val{font-size:14px;font-weight:600;color:var(--text)}
+.scan-tbl{width:100%;border-collapse:collapse}
+.scan-tbl th{
+  text-align:left;font-size:10px;font-weight:600;color:var(--text-sec);
+  padding:10px 14px;border-bottom:1px solid var(--border);background:var(--bg)
+}
+.scan-tbl td{padding:12px 14px;font-size:12px;border-bottom:1px solid var(--border)}
+.pat-empty{color:var(--text-sec);font-size:12px;padding:40px;text-align:center}
+
+/* ── Models ─────────────────────────────────────────────────── */
+.models-summary{
+  background:var(--surface);border:1px solid var(--border);border-radius:12px;
+  padding:14px 20px;display:flex;gap:32px;margin-bottom:24px;flex-wrap:wrap
+}
+.ms-stat .v{font-size:16px;font-weight:700;color:var(--text)}
+.ms-stat .l{font-size:10px;color:var(--text-sec);margin-top:2px}
+.models-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.model-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--card-r);
+  padding:18px 20px;min-height:180px;transition:border-color .15s
+}
+.mc-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.mc-name{font-size:14px;font-weight:700;color:var(--text)}
+.mc-loaded{font-size:10px;font-weight:600;padding:3px 10px;border-radius:10px;background:var(--green-tint);color:var(--green)}
+.mc-role{display:inline-block;font-size:10px;font-weight:600;padding:2px 10px;border-radius:8px;height:22px;line-height:18px;margin-bottom:6px}
+.mc-desc{font-size:10px;color:var(--text-sec);margin-bottom:12px}
+.mc-stats{display:flex;gap:16px;flex-wrap:wrap}
+.mc-stat .v{font-size:13px;font-weight:700;color:var(--text)}
+.mc-stat .l{font-size:10px;color:var(--text-sec)}
+
+/* ── Scan overlay ───────────────────────────────────────────── */
+#v-scan{
+  background:#050A14;display:flex;flex-direction:column;
+  overflow:hidden;position:fixed;z-index:100
+}
+#scan-canvas{position:absolute;inset:0;pointer-events:none}
+.scan-wrap{
+  position:relative;z-index:1;display:flex;flex-direction:column;
+  height:100vh;padding:16px 28px;gap:12px;overflow:hidden
+}
+.scan-hdr{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.scan-title{font-size:14px;font-weight:700;color:#89B4FA;letter-spacing:3px;flex:1}
+.scan-status{font-size:10px;letter-spacing:2px;padding:3px 10px;border-radius:11px}
+.scan-close{
+  background:transparent;color:#8AB4F8;border:1px solid rgba(66,133,244,.3);
+  border-radius:15px;padding:0 16px;height:30px;font-size:10px;
+  transition:color .15s,border-color .15s
+}
+.scan-close:hover{color:#EA4335;border-color:#EA4335}
+/* Upload page */
+.scan-upload{display:flex;flex-direction:column;gap:12px;flex:1;overflow-y:auto;padding-right:4px}
+.glow{
+  background:rgba(10,25,50,.88);border:1px solid rgba(66,133,244,.38);
+  border-radius:14px;padding:14px 18px
+}
+.h-lbl{font-size:10px;color:#8AB4F8;letter-spacing:1px;display:block;margin-bottom:4px}
+.pid-row{display:flex;align-items:center;gap:12px}
+.pid-key{font-size:10px;color:#8AB4F8;letter-spacing:1px;width:90px;flex-shrink:0}
+.h-input{
+  flex:1;height:36px;background:rgba(15,35,70,.85);border:1px solid rgba(66,133,244,.3);
+  border-radius:10px;padding:0 12px;font-size:12px;color:#E8F0FE;outline:none
+}
+.h-input:focus{border-color:#4285F4}
+.pid-name-lbl{font-size:11px;color:#89B4FA;white-space:nowrap}
+.pid-err{font-size:10px;color:#EA4335;padding:2px 4px;display:none}
+.upload-zone{display:flex;flex-direction:column;align-items:center;gap:10px;padding:16px}
+.xray-prev{
+  width:280px;height:200px;background:rgba(5,10,20,.9);
+  border:1px dashed rgba(66,133,244,.4);border-radius:10px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  color:#8AB4F8;font-size:11px;text-align:center;gap:8px;overflow:hidden;cursor:pointer
+}
+.xray-prev img{width:100%;height:100%;object-fit:contain}
+.upload-hint{font-size:11px;color:#8AB4F8;text-align:center}
+.upload-acts{display:flex;gap:10px}
+.h-btn{
+  background:transparent;color:#89B4FA;border:1px solid #4285F4;
+  border-radius:var(--btn-r);padding:0 20px;height:38px;font-size:12px;
+  font-weight:600;transition:background .15s
+}
+.h-btn:hover{background:rgba(66,133,244,.12)}
+.h-btn:disabled{color:rgba(137,180,250,.3);border-color:rgba(66,133,244,.2);cursor:not-allowed}
+.h-btn-primary{
+  background:#4285F4;color:#fff;border:none;border-radius:var(--btn-r);
+  padding:0 20px;height:38px;font-size:12px;font-weight:600;transition:background .15s
+}
+.h-btn-primary:hover{background:#1A73E8}
+.h-btn-primary:disabled{background:rgba(66,133,244,.2);color:rgba(255,255,255,.3);cursor:not-allowed}
+.analyze-btn{
+  display:block;width:210px;height:44px;margin:0 auto;border-radius:var(--btn-r);
+  font-size:13px;font-weight:700;letter-spacing:2px;border:none;transition:background .15s
+}
+.analyze-btn.on{background:#4285F4;color:#fff;cursor:pointer}
+.analyze-btn.on:hover{background:#1A73E8}
+.analyze-btn.off{background:rgba(66,133,244,.25);color:rgba(137,180,250,.4);
+  border:1px solid rgba(66,133,244,.15);cursor:not-allowed}
+/* Analysis page */
+.scan-analysis{display:flex;gap:14px;flex:1;overflow:hidden}
+.scan-left{width:370px;min-width:370px;display:flex;flex-direction:column;gap:10px}
+.xray-display{
+  width:342px;height:255px;background:rgba(5,10,20,.95);border-radius:8px;
+  display:flex;align-items:center;justify-content:center;overflow:hidden
+}
+.xray-display img{max-width:100%;max-height:100%;object-fit:contain}
+.xray-ph{color:#8AB4F8;font-size:11px;text-align:center}
+.scan-center{flex:1;display:flex;flex-direction:column;gap:10px;overflow-y:auto;min-width:0}
+.scan-right{width:260px;min-width:260px;display:flex;flex-direction:column;gap:10px}
+.res-top{display:flex;align-items:flex-start;gap:12px;margin-bottom:8px}
+.spinner{
+  width:36px;height:36px;border:3px solid rgba(66,133,244,.2);
+  border-top-color:#4285F4;border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.res-label{font-size:16px;font-weight:700;letter-spacing:2px;color:#89B4FA}
+.res-conf{font-size:11px;color:#8AB4F8;margin-top:2px}
+.detail-row{display:flex;gap:10px;margin-top:8px}
+.detail-box{flex:1;background:rgba(66,133,244,.07);border-radius:8px;padding:8px 10px}
+.db-lbl{font-size:8px;color:#8AB4F8;letter-spacing:1px;margin-bottom:2px}
+.db-val{font-size:14px;font-weight:700;color:#E8F0FE}
+.ens-bar-wrap{height:7px;background:rgba(66,133,244,.12);border-radius:3px;overflow:hidden;margin:6px 0 4px}
+.ens-bar{height:100%;background:#4285F4;border-radius:3px;width:0;transition:width .3s}
+.ens-label{font-size:9px;color:#8AB4F8}
+/* Model vote bar */
+.mvb{display:flex;align-items:center;height:34px;gap:8px}
+.mvb-name{width:130px;font-size:10px;color:#8AB4F8;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mvb-track{flex:1;height:5px;background:rgba(66,133,244,.12);border-radius:2px;overflow:hidden}
+.mvb-fill{height:100%;border-radius:2px;transition:width .4s;background:#4285F4}
+.mvb-pct{width:38px;text-align:right;font-size:10px;color:#89B4FA}
+.mvb-status{
+  width:55px;text-align:center;font-size:9px;color:#8AB4F8;
+  background:rgba(66,133,244,.08);border-radius:8px;padding:2px 4px
+}
+/* Analytics */
+#analytics-canvas{width:100%;height:150px;display:block}
+.prob-track{height:9px;background:rgba(66,133,244,.12);border-radius:4px;overflow:hidden;margin:6px 0 4px}
+.prob-fill{height:100%;border-radius:4px;background:#4285F4;width:0;transition:width .4s}
+.prob-pct{font-size:20px;font-weight:700;color:#89B4FA;text-align:center}
+.act-h-btn{
+  width:100%;height:36px;border-radius:var(--btn-r);font-size:12px;
+  font-weight:600;margin-bottom:8px;transition:background .15s
+}
+
+/* ── Modal overlay ──────────────────────────────────────────── */
+.modal-ov{
+  position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;
+  display:flex;align-items:center;justify-content:center
+}
+.modal-box{
+  background:#fff;border-radius:20px;padding:32px;width:480px;
+  max-width:95vw;max-height:90vh;overflow-y:auto
+}
+.modal-title{font-size:16px;font-weight:700;color:var(--text);margin-bottom:6px}
+.modal-sub{font-size:11px;color:var(--text-sec);margin-bottom:24px}
+.m-label{font-size:11px;color:var(--text-sec);margin-bottom:4px;display:block}
+.m-input{
+  width:100%;height:40px;border:1.5px solid var(--border);border-radius:8px;
+  padding:0 12px;font-size:12px;color:var(--text);outline:none;margin-bottom:12px
+}
+.m-input:focus{border-color:var(--blue)}
+.m-textarea{
+  width:100%;border:1.5px solid var(--border);border-radius:8px;
+  padding:8px 12px;font-size:12px;color:var(--text);outline:none;
+  resize:vertical;margin-bottom:12px;min-height:80px
+}
+.m-textarea:focus{border-color:var(--blue)}
+.m-select{
+  width:100%;height:40px;border:1.5px solid var(--border);border-radius:8px;
+  padding:0 12px;font-size:12px;color:var(--text);outline:none;
+  background:#fff;margin-bottom:12px
+}
+.m-select:focus{border-color:var(--blue)}
+.modal-foot{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
+.modal-err{font-size:11px;color:var(--red);min-height:16px;margin-top:8px}
+
+/* ── Scrollbars ─────────────────────────────────────────────── */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--text-sec)}
+
+/* ── Toast ──────────────────────────────────────────────────── */
+#toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+  padding:10px 20px;border-radius:8px;font-size:12px;font-weight:600;
+  z-index:999;opacity:0;transition:opacity .3s;pointer-events:none
+}
+#toast.success{background:var(--green-tint);color:var(--green);border:1px solid var(--green)}
+#toast.error{background:var(--red-tint);color:var(--red);border:1px solid var(--red)}
+</style>
+</head>
+<body>
+
+<!-- ──────────────────── LOGIN ──────────────────── -->
+<div id="v-login" class="view">
+  <div class="login-card">
+    <div class="nemo-mark"><span class="n">N</span><span class="e">E</span><span class="m">M</span><span class="o">O</span><span class="s">Scan</span></div>
+    <div class="login-sub">Neural Engine for Medical Observation — Lung Module</div>
+    <label class="f-label" for="login-email">Email</label>
+    <input class="f-input" id="login-email" type="email" placeholder="doctor@hospital.com" autocomplete="email">
+    <label class="f-label" for="login-password">Password</label>
+    <input class="f-input" id="login-password" type="password" placeholder="••••••••">
+    <button class="login-btn" id="login-btn">Log in</button>
+    <div class="login-err" id="login-err"></div>
+  </div>
+</div>
+
+<!-- ──────────────────── MAIN APP ──────────────────── -->
+<div id="v-app" class="view hidden">
+
+  <!-- Sidebar -->
+  <div id="sidebar">
+    <div class="sb-logo-row">
+      <div class="sb-logo-icon">N</div>
+      <div class="sb-logo-text">NEMO Scan</div>
+    </div>
+    <div class="sb-version">Lung Module &nbsp;v1.0</div>
+    <div class="sb-div"></div>
+    <button class="nav-btn active" data-panel="dashboard">&#9632;&nbsp; Dashboard</button>
+    <button class="nav-btn" data-panel="scan">&#43;&nbsp; New Scan</button>
+    <button class="nav-btn" data-panel="patients">&#128101;&nbsp; Patient Records</button>
+    <button class="nav-btn" data-panel="models">&#129302;&nbsp; AI Models</button>
+    <div class="sb-spacer"></div>
+    <div class="sb-div"></div>
+    <div class="sb-doc">
+      <div class="doc-av" id="sb-avatar">DR</div>
+      <div>
+        <div class="doc-name" id="sb-name">Doctor</div>
+        <div class="doc-spec" id="sb-spec"></div>
+      </div>
+    </div>
+    <button class="logout-btn" id="logout-btn">Logout</button>
+  </div>
+
+  <!-- Content area -->
+  <div id="content">
+
+    <!-- Dashboard -->
+    <div class="panel" id="panel-dashboard">
+      <div class="dash-hdr">
+        <div>
+          <div class="dash-greeting" id="dash-greeting">Good day, Doctor</div>
+          <div class="dash-sub">Here is your diagnostic overview for today.</div>
+        </div>
+        <div class="dash-btns">
+          <button class="btn-outline btn-sm" id="dash-refresh-btn">&#8635; Refresh</button>
+          <button class="btn-primary btn-sm" id="dash-scan-btn">New Scan</button>
+        </div>
+      </div>
+      <div class="metric-grid">
+        <div class="metric-card">
+          <div class="metric-top">
+            <span class="metric-title">Total Patients</span>
+            <span class="metric-dot" style="background:var(--blue)"></span>
+          </div>
+          <div class="metric-val" id="m-patients">0</div>
+          <div class="metric-sub">Registered patients</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-top">
+            <span class="metric-title">Scans Today</span>
+            <span class="metric-dot" style="background:var(--yellow)"></span>
+          </div>
+          <div class="metric-val" id="m-today">0</div>
+          <div class="metric-sub">Since midnight</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-top">
+            <span class="metric-title">Pneumonia Rate</span>
+            <span class="metric-dot" style="background:var(--red)"></span>
+          </div>
+          <div class="metric-val" id="m-pneu">0%</div>
+          <div class="metric-sub">Of all scans</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-top">
+            <span class="metric-title">Reports Generated</span>
+            <span class="metric-dot" style="background:var(--green)"></span>
+          </div>
+          <div class="metric-val" id="m-reports">0</div>
+          <div class="metric-sub">PDF reports created</div>
+        </div>
+      </div>
+      <div class="sec-title">Quick Actions</div>
+      <div class="quick-actions" style="margin-bottom:32px">
+        <button class="btn-primary" id="qa-register">Register New Patient</button>
+        <button class="btn-outline" id="qa-patients">All Patients</button>
+        <button class="btn-outline" id="qa-scan">New Scan</button>
+      </div>
+      <div class="sec-title">Recent Scans</div>
+      <div class="activity-card" id="activity-list">
+        <div class="act-empty">No scans yet. Upload an X-ray to get started.</div>
+      </div>
+    </div>
+
+    <!-- Patients -->
+    <div class="panel hidden" id="panel-patients">
+      <div style="font-size:22px;font-weight:700;color:var(--text);margin-bottom:4px">Patient Records</div>
+      <div style="font-size:12px;color:var(--text-sec);margin-bottom:24px">Search and view patient histories and scan results.</div>
+      <div class="pat-layout">
+        <div class="pat-list-col">
+          <input class="search-inp" id="pat-search" placeholder="Search patients...">
+          <div id="pat-list"><div class="pat-empty">Loading patients...</div></div>
+        </div>
+        <div class="pat-detail-col">
+          <div id="pat-detail-area" class="pat-empty" style="padding:80px;text-align:center">
+            Select a patient from the list to view their record.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Models -->
+    <div class="panel hidden" id="panel-models">
+      <div style="font-size:24px;font-weight:700;color:var(--text);margin-bottom:4px">AI Models</div>
+      <div style="font-size:12px;color:var(--text-sec);margin-bottom:24px">Status and performance metrics for all 7 ensemble models.</div>
+      <div class="models-summary">
+        <div class="ms-stat"><div class="v">7 / 7</div><div class="l">Models Loaded</div></div>
+        <div class="ms-stat"><div class="v">98.4%</div><div class="l">Ensemble Acc.</div></div>
+        <div class="ms-stat"><div class="v">~198M</div><div class="l">Total Parameters</div></div>
+        <div class="ms-stat"><div class="v">Weighted Soft-Vote</div><div class="l">Architecture</div></div>
+      </div>
+      <div class="models-grid" id="models-grid"></div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /v-app -->
+
+<!-- ──────────────────── SCAN OVERLAY ──────────────────── -->
+<div id="v-scan" class="view hidden">
+  <canvas id="scan-canvas"></canvas>
+  <div class="scan-wrap">
+    <!-- Header -->
+    <div class="scan-hdr">
+      <div class="scan-title">NEMO SCAN &nbsp;//&nbsp; AI DIAGNOSTIC SYSTEM</div>
+      <div class="scan-status" id="scan-status-badge"
+           style="color:#34A853;background:rgba(52,168,83,.1);border:1px solid rgba(52,168,83,.3)">READY</div>
+      <button class="scan-close" id="scan-close-btn">Close</button>
+    </div>
+
+    <!-- UPLOAD PAGE -->
+    <div class="scan-upload" id="scan-upload-page">
+      <!-- Patient ID row -->
+      <div class="glow">
+        <div class="pid-row">
+          <span class="pid-key">PATIENT ID</span>
+          <input class="h-input" id="scan-pid" placeholder="Enter patient ID (e.g. PAT-A1B2C3D4)" style="max-width:320px">
+          <span class="pid-name-lbl" id="scan-pid-name"></span>
+          <span style="font-size:11px;color:#8AB4F8;margin-left:auto" id="scan-doc-lbl"></span>
+        </div>
+        <div class="pid-err" id="scan-pid-err">Patient ID not found. Please register the patient first.</div>
+      </div>
+      <!-- Upload zone -->
+      <div class="glow" style="flex:1">
+        <div class="upload-zone">
+          <div class="xray-prev" id="xray-prev" title="Click to upload">
+            <div>X-RAY PREVIEW</div>
+            <div style="font-size:10px;opacity:.6">No image loaded</div>
+          </div>
+          <div class="upload-hint">Upload a chest X-ray image to begin AI analysis</div>
+          <div class="upload-acts">
+            <button class="h-btn-primary" id="upload-btn" disabled>Upload from Device</button>
+            <button class="h-btn" id="scan-upload-cancel" style="display:none">Cancel</button>
+          </div>
+          <div style="font-size:9px;color:#8AB4F8">Supported: JPEG, PNG, BMP, TIFF</div>
+        </div>
+      </div>
+      <input type="file" id="file-input" accept="image/*" style="display:none">
+      <!-- Analyze button -->
+      <button class="analyze-btn off" id="analyze-btn" disabled>INITIATE ANALYSIS</button>
+      <div style="height:4px"></div>
+    </div>
+
+    <!-- ANALYSIS PAGE (hidden until analysis starts) -->
+    <div class="scan-analysis hidden" id="scan-analysis-page">
+      <!-- LEFT: X-ray display -->
+      <div class="scan-left">
+        <div class="glow" style="flex:0 0 auto">
+          <span class="h-lbl">X-RAY ANALYSIS</span>
+          <div class="xray-display" id="xray-display">
+            <div class="xray-ph">No image</div>
+          </div>
+          <button class="h-btn" id="heatmap-toggle-btn" disabled
+                  style="width:100%;margin-top:8px;height:34px;font-size:10px">Show Grad-CAM Heatmap</button>
+        </div>
+      </div>
+
+      <!-- CENTER: Results + Progress + Model votes -->
+      <div class="scan-center">
+        <!-- Diagnostic result -->
+        <div class="glow">
+          <span class="h-lbl">DIAGNOSTIC RESULT</span>
+          <div class="res-top">
+            <div class="spinner" id="spinner"></div>
+            <div>
+              <div class="res-label" id="res-label">ANALYZING...</div>
+              <div class="res-conf" id="res-conf">Confidence: --</div>
+            </div>
+          </div>
+          <div class="detail-row">
+            <div class="detail-box">
+              <div class="db-lbl">SEVERITY</div>
+              <div class="db-val" id="res-sev">--</div>
+            </div>
+            <div class="detail-box">
+              <div class="db-lbl">SUBTYPE</div>
+              <div class="db-val" id="res-sub">--</div>
+            </div>
+          </div>
+        </div>
+        <!-- Ensemble progress -->
+        <div class="glow">
+          <span class="h-lbl">ENSEMBLE PROGRESS</span>
+          <div class="ens-bar-wrap"><div class="ens-bar" id="ens-bar"></div></div>
+          <div class="ens-label" id="ens-label">0 / 6 models complete</div>
+        </div>
+        <!-- Model votes -->
+        <div class="glow" style="flex:1">
+          <span class="h-lbl">MODEL VOTES</span>
+          <div id="model-votes-list"></div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Analytics + Actions -->
+      <div class="scan-right">
+        <div class="glow" style="flex:0 0 auto">
+          <span class="h-lbl">ANALYTICS</span>
+          <canvas id="analytics-canvas"></canvas>
+          <span class="h-lbl" style="margin-top:8px">PNEUMONIA PROBABILITY</span>
+          <div class="prob-track"><div class="prob-fill" id="prob-fill"></div></div>
+          <div class="prob-pct" id="prob-pct">0%</div>
+        </div>
+        <div class="glow" style="flex:0 0 auto">
+          <span class="h-lbl">ACTIONS</span>
+          <button class="act-h-btn h-btn" id="report-btn" disabled
+                  style="color:#89B4FA;border:1px solid #4285F4">Generate PDF Report</button>
+          <button class="act-h-btn h-btn-primary" id="new-scan-btn">New Scan</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ──────────────────── MODALS ──────────────────── -->
+<!-- Register patient -->
+<div class="modal-ov hidden" id="reg-modal">
+  <div class="modal-box">
+    <div class="modal-title">Register New Patient</div>
+    <div class="modal-sub">Fill in patient details to create a record.</div>
+    <label class="m-label">Patient ID <span style="color:var(--text-sec)">(leave blank to auto-generate)</span></label>
+    <input class="m-input" id="reg-pid" placeholder="e.g. PAT-001">
+    <label class="m-label">Full Name *</label>
+    <input class="m-input" id="reg-name" placeholder="Full name">
+    <div style="display:flex;gap:12px">
+      <div style="flex:1"><label class="m-label">Age *</label><input class="m-input" id="reg-age" placeholder="Age" type="number" min="1" max="120"></div>
+      <div style="flex:1"><label class="m-label">Gender *</label>
+        <select class="m-select" id="reg-gender"><option>Male</option><option>Female</option><option>Other</option></select>
+      </div>
+    </div>
+    <label class="m-label">Contact</label>
+    <input class="m-input" id="reg-contact" placeholder="Phone / email">
+    <label class="m-label">Symptoms</label>
+    <textarea class="m-textarea" id="reg-symptoms" placeholder="Current symptoms (cough, fever, chest pain...)"></textarea>
+    <label class="m-label">Medical History</label>
+    <textarea class="m-textarea" id="reg-history" placeholder="Relevant medical history, allergies, medications..."></textarea>
+    <div class="modal-err" id="reg-err"></div>
+    <div class="modal-foot">
+      <button class="btn-outline btn-sm" id="reg-cancel">Cancel</button>
+      <button class="btn-primary btn-sm" id="reg-save" style="background:var(--green);border-color:var(--green)">Register Patient</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════
+const S = {
+  doctor: null,
+  panel: 'dashboard',
+  patients: [],
+  currentPatient: null,
+  scanFile: null,
+  scanPatient: null,
+  scanImageB64: null,
+  scanHeatmapB64: null,
+  showingHeatmap: false,
+  scanResult: null,
+  particles: [],
+  particleRaf: null,
+  progressSim: null,
+  simProgress: 0,
+};
+
+// ═══════════════════════════════════════════════════════════════
+// API
+// ═══════════════════════════════════════════════════════════════
+const api = {
+  async login(email, password) {
+    const r = await fetch('/api/login', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({email, password})
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.detail || 'Login failed');
+    return d.doctor;
+  },
+  async dashboard(doctor_id) {
+    const r = await fetch(`/api/dashboard?doctor_id=${encodeURIComponent(doctor_id)}`);
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.detail || 'Failed to load dashboard');
+    return d;
+  },
+  async patients(doctor_id, q='') {
+    const url = `/api/patients?doctor_id=${encodeURIComponent(doctor_id)}&q=${encodeURIComponent(q)}`;
+    const r = await fetch(url);
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.detail || 'Failed to load patients');
+    return d;
+  },
+  async patient(pid) {
+    const r = await fetch(`/api/patients/${encodeURIComponent(pid)}`);
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.detail || 'Patient not found');
+    return d;
+  },
+  async patientScans(pid) {
+    const r = await fetch(`/api/patients/${encodeURIComponent(pid)}/scans`);
+    return r.ok ? await r.json() : [];
+  },
+  async registerPatient(body) {
+    const r = await fetch('/api/patients', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(body)
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.detail || 'Registration failed');
+    return d;
+  },
+  async scan(formData) {
+    const r = await fetch('/api/scan', {method:'POST', body: formData});
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.detail || 'Scan failed');
+    return d;
+  },
+};
+
+// ═══════════════════════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════════════════════
+function $(id){ return document.getElementById(id); }
+function fmtTime(iso) {
+  if (!iso) return '';
+  const d = new Date(iso), now = new Date();
+  const s = (now - d) / 1000;
+  if (s < 60) return 'just now';
+  if (s < 3600) return `${Math.floor(s/60)}m ago`;
+  if (s < 86400) return `${Math.floor(s/3600)}h ago`;
+  return d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+}
+function fmtDate(iso) {
+  if (!iso) return '--';
+  return new Date(iso).toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'});
+}
+function initials(name='') {
+  return name.split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase() || 'DR';
+}
+function showToast(msg, type='success') {
+  const t = $('toast');
+  t.textContent = msg;
+  t.className = type;
+  t.style.opacity = '1';
+  setTimeout(()=>{ t.style.opacity='0'; }, 3000);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// LOGIN
+// ═══════════════════════════════════════════════════════════════
+$('login-btn').onclick = async () => {
+  const email    = $('login-email').value.trim();
+  const password = $('login-password').value;
+  $('login-err').textContent = '';
+  $('login-btn').disabled = true;
+  $('login-btn').textContent = 'Logging in...';
+  try {
+    S.doctor = await api.login(email, password);
+    enterApp();
+  } catch(e) {
+    $('login-err').textContent = e.message;
+  } finally {
+    $('login-btn').disabled = false;
+    $('login-btn').textContent = 'Log in';
+  }
+};
+['login-email','login-password'].forEach(id => {
+  $(id).addEventListener('keydown', e => { if(e.key==='Enter') $('login-btn').click(); });
+});
+
+function enterApp() {
+  $('v-login').classList.add('hidden');
+  $('v-app').classList.remove('hidden');
+  const name = S.doctor.name || 'Doctor';
+  const spec = S.doctor.specialization || '';
+  $('sb-avatar').textContent = initials(name);
+  $('sb-name').textContent   = name;
+  $('sb-spec').textContent   = spec;
+  $('dash-greeting').textContent = `Good day, Dr. ${name}`;
+  buildModelsPanel();
+  loadDashboard();
+  loadPatients();
+}
+
+$('logout-btn').onclick = () => {
+  S.doctor = null;
+  $('v-app').classList.add('hidden');
+  $('v-scan').classList.add('hidden');
+  $('v-login').classList.remove('hidden');
+  $('login-email').value = '';
+  $('login-password').value = '';
+};
+
+// ═══════════════════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════════════════
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.onclick = () => {
+    const p = btn.dataset.panel;
+    if (p === 'scan') { openScan(); return; }
+    showPanel(p);
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b===btn));
+  };
+});
+function showPanel(name) {
+  ['dashboard','patients','models'].forEach(p => {
+    $(`panel-${p}`).classList.toggle('hidden', p!==name);
+  });
+  S.panel = name;
+  if (name==='patients') loadPatients();
+}
+$('dash-scan-btn').onclick = () => openScan();
+$('qa-scan').onclick       = () => openScan();
+$('qa-patients').onclick   = () => { showPanel('patients'); setNavActive('patients'); };
+$('qa-register').onclick   = () => openRegisterModal();
+function setNavActive(panel) {
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.panel===panel));
+}
+
+// ═══════════════════════════════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════════════════════════════
+$('dash-refresh-btn').onclick = loadDashboard;
+async function loadDashboard() {
+  if (!S.doctor) return;
+  try {
+    const {stats, recent} = await api.dashboard(S.doctor.doctor_id);
+    $('m-patients').textContent = stats.total_patients ?? 0;
+    $('m-today').textContent    = stats.scans_today    ?? 0;
+    $('m-pneu').textContent     = (stats.pneumonia_rate ?? 0) + '%';
+    $('m-reports').textContent  = stats.reports_generated ?? 0;
+    renderActivity(recent || []);
+  } catch(e) { console.error('Dashboard error:', e); }
+}
+function renderActivity(scans) {
+  const el = $('activity-list');
+  if (!scans.length) {
+    el.innerHTML = '<div class="act-empty">No scans yet. Upload an X-ray to get started.</div>';
+    return;
+  }
+  el.innerHTML = scans.map((sc,i) => {
+    const pred   = sc.prediction || 'Unknown';
+    const isPneu = pred.toUpperCase() === 'PNEUMONIA';
+    const accent = isPneu ? '#EA4335' : '#34A853';
+    const bClass = isPneu ? 'badge-p' : 'badge-n';
+    const conf   = (sc.confidence||0)*100;
+    const name   = sc.patient_name || sc.patient_id || 'Unknown';
+    return `<div class="act-row" style="border-left-color:${accent}" data-pid="${sc.patient_id||''}">
+      <div style="flex:1"><div class="act-name">${name}</div><div class="act-time">${fmtTime(sc.scan_date)}</div></div>
+      <span class="act-conf">${conf.toFixed(1)}% conf.</span>
+      <span class="badge ${bClass}">${pred.charAt(0)+pred.slice(1).toLowerCase()}</span>
+    </div>`;
+  }).join('');
+  el.querySelectorAll('.act-row').forEach(row => {
+    row.onclick = () => {
+      const pid = row.dataset.pid;
+      if (pid) openPatientById(pid);
+    };
+  });
+}
+async function openPatientById(pid) {
+  try {
+    const patient = await api.patient(pid);
+    showPanel('patients'); setNavActive('patients');
+    renderPatientDetail(patient);
+  } catch(e) {}
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PATIENTS
+// ═══════════════════════════════════════════════════════════════
+let searchTimeout = null;
+$('pat-search').addEventListener('input', () => {
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(loadPatients, 300);
+});
+async function loadPatients() {
+  if (!S.doctor) return;
+  const q = $('pat-search').value.trim();
+  try {
+    S.patients = await api.patients(S.doctor.doctor_id, q);
+    renderPatientList();
+  } catch(e) {}
+}
+function renderPatientList() {
+  const el = $('pat-list');
+  if (!S.patients.length) {
+    el.innerHTML = '<div class="pat-empty">No patients found.</div>';
+    return;
+  }
+  el.innerHTML = S.patients.map(p => {
+    const diag = p.last_diagnosis ? (p.last_diagnosis==='PNEUMONIA'?'Pneumonia':'Normal') : 'No scans yet';
+    return `<div class="pat-item" data-pid="${p.patient_id}">
+      <div class="pi-name">${p.name}</div>
+      <div class="pi-sub">ID: ${p.patient_id} &nbsp;·&nbsp; ${p.age||'?'}y ${p.gender||''} &nbsp;·&nbsp; ${diag}</div>
+    </div>`;
+  }).join('');
+  el.querySelectorAll('.pat-item').forEach(item => {
+    item.onclick = () => {
+      el.querySelectorAll('.pat-item').forEach(i=>i.classList.remove('sel'));
+      item.classList.add('sel');
+      const pat = S.patients.find(p=>p.patient_id===item.dataset.pid);
+      if (pat) renderPatientDetail(pat);
+    };
+  });
+}
+async function renderPatientDetail(patient) {
+  S.currentPatient = patient;
+  const scans = await api.patientScans(patient.patient_id);
+  const el = $('pat-detail-area');
+  const lastDiag = patient.last_diagnosis;
+  const diagBadge = lastDiag
+    ? (lastDiag.toUpperCase()==='PNEUMONIA'
+       ? '<span class="badge badge-p">Pneumonia</span>'
+       : '<span class="badge badge-n">Normal</span>')
+    : '';
+
+  el.innerHTML = `
+    <div class="pat-detail">
+      <div class="pd-hdr">
+        <div>
+          <div class="pd-name">${patient.name}</div>
+          <div class="pd-id">ID: ${patient.patient_id}</div>
+        </div>
+        <div class="pd-btns">
+          <button class="btn-primary btn-sm" id="pd-scan-btn">New Scan</button>
+        </div>
+      </div>
+      <div class="info-grid">
+        <div class="info-stat"><div class="is-label">Age</div><div class="is-val">${patient.age||'--'}</div></div>
+        <div class="info-stat"><div class="is-label">Gender</div><div class="is-val">${patient.gender||'--'}</div></div>
+        <div class="info-stat"><div class="is-label">Contact</div><div class="is-val">${patient.contact||'--'}</div></div>
+        <div class="info-stat"><div class="is-label">Total Scans</div><div class="is-val">${patient.total_scans||0}</div></div>
+        <div class="info-stat"><div class="is-label">Last Diagnosis</div><div class="is-val">${diagBadge||'--'}</div></div>
+        <div class="info-stat"><div class="is-label">Last Scan</div><div class="is-val">${fmtDate(patient.last_scan_date)}</div></div>
+      </div>
+      ${patient.symptoms ? `<div style="margin-bottom:16px"><div class="sec-title" style="font-size:13px;margin-bottom:6px">Symptoms</div><div style="font-size:12px;color:var(--text-sec)">${patient.symptoms}</div></div>` : ''}
+      ${patient.medical_history ? `<div style="margin-bottom:20px"><div class="sec-title" style="font-size:13px;margin-bottom:6px">Medical History</div><div style="font-size:12px;color:var(--text-sec)">${patient.medical_history}</div></div>` : ''}
+      <div class="sec-title" style="font-size:13px;margin-bottom:12px">Scan History (${scans.length})</div>
+      ${scans.length ? `
+        <table class="scan-tbl">
+          <thead><tr>
+            <th>Date</th><th>Diagnosis</th><th>Confidence</th><th>Severity</th>
+          </tr></thead>
+          <tbody>
+            ${scans.map(s => {
+              const pred = s.result?.prediction || 'Unknown';
+              const isPneu = pred.toUpperCase()==='PNEUMONIA';
+              const bc = isPneu ? 'badge-p' : 'badge-n';
+              const conf = ((s.result?.confidence||0)*100).toFixed(1);
+              return `<tr>
+                <td>${fmtDate(s.scan_date)}</td>
+                <td><span class="badge ${bc}">${pred.charAt(0)+pred.slice(1).toLowerCase()}</span></td>
+                <td>${conf}%</td>
+                <td>${s.result?.severity||'--'}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>` : '<div style="color:var(--text-sec);font-size:12px">No scans recorded yet.</div>'}
+    </div>`;
+  $('pd-scan-btn').onclick = () => openScan(patient);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// MODELS PANEL
+// ═══════════════════════════════════════════════════════════════
+const MODEL_INFO = [
+  {name:"MobileNetV3",key:"mobilenetv3",role:"Speed Model",desc:"Instant result in 2-3 seconds. Runs first.",weight:"0.10",val_acc:"97.13%",test_acc:"97.80%",params:"5.4M",accent:"#4285F4",tint:"#E8F0FE"},
+  {name:"ResNet-50",key:"resnet50",role:"Core Ensemble",desc:"Strong general-purpose feature extractor.",weight:"0.18",val_acc:"98.47%",test_acc:"97.67%",params:"25.6M",accent:"#34A853",tint:"#E6F4EA"},
+  {name:"DenseNet-121",key:"densenet121",role:"Anchor Model",desc:"CheXNet architecture. Highest ensemble weight.",weight:"0.25",val_acc:"98.87%",test_acc:"98.67%",params:"7.0M",accent:"#4285F4",tint:"#E8F0FE"},
+  {name:"EfficientNet-B4",key:"efficientnet_b4",role:"Efficiency Model",desc:"Compound scaling for accuracy-efficiency balance.",weight:"0.20",val_acc:"98.40%",test_acc:"98.20%",params:"19.3M",accent:"#34A853",tint:"#E6F4EA"},
+  {name:"ViT-B/16",key:"vit_b16",role:"Attention Model",desc:"Transformer-based global pattern detection.",weight:"0.17",val_acc:"98.13%",test_acc:"97.73%",params:"86.6M",accent:"#FBBC05",tint:"#FEF7E0"},
+  {name:"InceptionV3",key:"inception_v3",role:"Multi-Scale Detector",desc:"Detects fine and coarse features simultaneously.",weight:"0.10",val_acc:"98.80%",test_acc:"98.73%",params:"23.9M",accent:"#34A853",tint:"#E6F4EA"},
+  {name:"AttentionCNN",key:"attention_cnn",role:"Explainability Model",desc:"Custom architecture. Produces Grad-CAM heatmaps only.",weight:"0.00",val_acc:"98.67%",test_acc:"98.13%",params:"~30M",accent:"#EA4335",tint:"#FCE8E6"},
+];
+function buildModelsPanel() {
+  $('models-grid').innerHTML = MODEL_INFO.map(m => `
+    <div class="model-card" style="border-top:3px solid ${m.accent}">
+      <div class="mc-top">
+        <span class="mc-name">${m.name}</span>
+        <span class="mc-loaded">Loaded</span>
+      </div>
+      <div class="mc-role" style="background:${m.tint};color:${m.accent}">${m.role}</div>
+      <div class="mc-desc">${m.desc}</div>
+      <div class="mc-stats">
+        <div class="mc-stat"><div class="v">${m.val_acc}</div><div class="l">Val Acc</div></div>
+        <div class="mc-stat"><div class="v">${m.test_acc}</div><div class="l">Test Acc</div></div>
+        <div class="mc-stat"><div class="v">${m.weight}</div><div class="l">Weight</div></div>
+        <div class="mc-stat"><div class="v">${m.params}</div><div class="l">Params</div></div>
+      </div>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// REGISTER PATIENT MODAL
+// ═══════════════════════════════════════════════════════════════
+function openRegisterModal() {
+  ['reg-pid','reg-name','reg-age','reg-contact','reg-symptoms','reg-history'].forEach(id=>$(id).value='');
+  $('reg-gender').selectedIndex = 0;
+  $('reg-err').textContent = '';
+  $('reg-modal').classList.remove('hidden');
+}
+$('reg-cancel').onclick = () => $('reg-modal').classList.add('hidden');
+$('reg-modal').onclick  = e => { if(e.target===$('reg-modal')) $('reg-modal').classList.add('hidden'); };
+$('reg-save').onclick   = async () => {
+  const name = $('reg-name').value.trim();
+  const age  = $('reg-age').value.trim();
+  $('reg-err').textContent = '';
+  if (!name) { $('reg-err').textContent='Patient name is required.'; return; }
+  if (!age || isNaN(age)) { $('reg-err').textContent='Age must be a number.'; return; }
+  $('reg-save').disabled = true;
+  try {
+    await api.registerPatient({
+      name, age:parseInt(age), gender:$('reg-gender').value,
+      contact:$('reg-contact').value.trim(),
+      symptoms:$('reg-symptoms').value.trim(),
+      medical_history:$('reg-history').value.trim(),
+      doctor_id:S.doctor.doctor_id,
+      patient_id:$('reg-pid').value.trim()||undefined,
+    });
+    $('reg-modal').classList.add('hidden');
+    showToast(`Patient "${name}" registered successfully.`, 'success');
+    loadDashboard(); loadPatients();
+  } catch(e) {
+    $('reg-err').textContent = e.message;
+  } finally { $('reg-save').disabled=false; }
+};
+
+// ═══════════════════════════════════════════════════════════════
+// SCAN OVERLAY
+// ═══════════════════════════════════════════════════════════════
+function openScan(patient=null) {
+  resetScan();
+  S.scanPatient = patient || null;
+  if (patient) {
+    $('scan-pid').value = patient.patient_id;
+    $('scan-pid').readOnly = true;
+    $('scan-pid-name').textContent = patient.name;
+    $('scan-pid-err').style.display = 'none';
+    $('upload-btn').disabled = false;
+  }
+  $('scan-doc-lbl').textContent = `Dr. ${S.doctor?.name || ''}`;
+  $('v-scan').classList.remove('hidden');
+  startParticles();
+}
+function closeScan() {
+  $('v-scan').classList.add('hidden');
+  stopParticles();
+  loadDashboard();
+  if (S.panel==='patients') loadPatients();
+}
+$('scan-close-btn').onclick = closeScan;
+$('new-scan-btn').onclick   = () => { resetScan(); };
+
+function resetScan() {
+  S.scanFile = null; S.scanImageB64 = null; S.scanHeatmapB64 = null;
+  S.showingHeatmap = false; S.scanResult = null; S.scanPatient = null;
+  $('scan-pid').value = ''; $('scan-pid').readOnly = false;
+  $('scan-pid-name').textContent = '';
+  $('scan-pid-err').style.display = 'none';
+  $('xray-prev').innerHTML = '<div>X-RAY PREVIEW</div><div style="font-size:10px;opacity:.6">No image loaded</div>';
+  $('upload-btn').disabled = true;
+  $('analyze-btn').disabled = true;
+  $('analyze-btn').className = 'analyze-btn off';
+  $('scan-upload-page').classList.remove('hidden');
+  $('scan-analysis-page').classList.add('hidden');
+  setScanStatus('READY', '#34A853','rgba(52,168,83,.1)','rgba(52,168,83,.3)');
+  $('heatmap-toggle-btn').disabled = true;
+  $('heatmap-toggle-btn').textContent = 'Show Grad-CAM Heatmap';
+  $('report-btn').disabled = true;
+  clearInterval(S.progressSim); S.progressSim=null;
+}
+
+// Patient ID live lookup
+let pidTimer = null;
+$('scan-pid').addEventListener('input', () => {
+  clearTimeout(pidTimer);
+  const pid = $('scan-pid').value.trim();
+  if (!pid) {
+    $('scan-pid-name').textContent=''; $('scan-pid-err').style.display='none';
+    S.scanPatient=null; $('upload-btn').disabled=true; return;
+  }
+  pidTimer = setTimeout(async()=>{
+    try {
+      const p = await api.patient(pid);
+      S.scanPatient = p;
+      $('scan-pid-name').textContent = p.name;
+      $('scan-pid-err').style.display = 'none';
+      $('upload-btn').disabled = false;
+    } catch {
+      S.scanPatient=null;
+      $('scan-pid-name').textContent='';
+      $('scan-pid-err').style.display='block';
+      $('upload-btn').disabled=true;
+    }
+  }, 600);
+});
+
+// File handling
+$('upload-btn').onclick = () => $('file-input').click();
+$('xray-prev').onclick  = () => { if(!$('upload-btn').disabled) $('file-input').click(); };
+$('file-input').onchange = e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  S.scanFile = file;
+  const url = URL.createObjectURL(file);
+  $('xray-prev').innerHTML = `<img src="${url}" alt="X-ray preview">`;
+  $('analyze-btn').disabled = false;
+  $('analyze-btn').className = 'analyze-btn on';
+  e.target.value = '';
+};
+
+// Analyze
+$('analyze-btn').onclick = async () => {
+  if (!S.scanFile || $('analyze-btn').disabled) return;
+  const pid = $('scan-pid').value.trim();
+  if (pid && !S.scanPatient) {
+    alert('Patient ID not found. Please register the patient first or clear the field.');
+    return;
+  }
+
+  // Switch to analysis view
+  $('scan-upload-page').classList.add('hidden');
+  $('scan-analysis-page').classList.remove('hidden');
+  setScanStatus('ANALYZING','#89B4FA','rgba(66,133,244,.1)','rgba(66,133,244,.3)');
+
+  // Show original image
+  const imgUrl = URL.createObjectURL(S.scanFile);
+  $('xray-display').innerHTML = `<img src="${imgUrl}" alt="X-ray">`;
+
+  // Reset result fields
+  $('res-label').textContent='ANALYZING...'; $('res-label').style.color='#89B4FA';
+  $('res-conf').textContent='Confidence: --';
+  $('res-sev').textContent='--'; $('res-sub').textContent='--';
+  $('ens-bar').style.width='0'; $('ens-label').textContent='0 / 6 models complete';
+  $('prob-fill').style.width='0'; $('prob-pct').textContent='0%';
+  $('spinner').classList.remove('hidden');
+  buildModelVoteBars();
+  drawChart({});
+  $('report-btn').disabled=true; $('heatmap-toggle-btn').disabled=true;
+
+  // Simulate progress while awaiting the real response
+  S.simProgress=0;
+  clearInterval(S.progressSim);
+  S.progressSim = setInterval(()=>{
+    if (S.simProgress < 85) {
+      S.simProgress += Math.random()*4;
+      const v = Math.min(S.simProgress,85);
+      $('ens-bar').style.width = v+'%';
+      const done = Math.floor(v/100*6);
+      $('ens-label').textContent = `${done} / 6 models complete`;
+    }
+  }, 400);
+
+  const fd = new FormData();
+  fd.append('image', S.scanFile);
+  fd.append('doctor_id', S.doctor.doctor_id);
+  fd.append('doctor_name', S.doctor.name||'');
+  if (S.scanPatient) fd.append('patient_id', S.scanPatient.patient_id);
+
+  try {
+    const result = await api.scan(fd);
+    clearInterval(S.progressSim);
+    S.scanResult = result;
+    S.scanImageB64   = result.image_b64;
+    S.scanHeatmapB64 = result.heatmap_b64;
+    renderScanResult(result);
+  } catch(e) {
+    clearInterval(S.progressSim);
+    $('spinner').classList.add('hidden');
+    $('res-label').textContent='ERROR'; $('res-label').style.color='#EA4335';
+    $('res-conf').textContent=e.message.slice(0,60);
+    setScanStatus('ERROR','#EA4335','rgba(234,67,53,.1)','rgba(234,67,53,.3)');
+  }
+};
+
+function renderScanResult(r) {
+  const pred = r.prediction || '';
+  const conf = (r.confidence||0)*100;
+  const prob = (r.ensemble_prob||r.confidence||0)*100;
+  const isPneu = pred.toUpperCase()==='PNEUMONIA';
+  const color  = isPneu ? '#EA4335' : '#34A853';
+
+  $('spinner').classList.add('hidden');
+  $('res-label').textContent = pred; $('res-label').style.color = color;
+  $('res-conf').textContent  = `Confidence: ${conf.toFixed(2)}%`;
+  $('res-sev').textContent   = r.severity || '--';
+  $('res-sub').textContent   = r.subtype  || '--';
+  $('ens-bar').style.width   = '100%';
+  $('ens-label').textContent = 'Analysis complete';
+  $('prob-fill').style.width = prob.toFixed(1)+'%';
+  $('prob-fill').style.background = isPneu ? '#EA4335' : '#34A853';
+  $('prob-pct').textContent  = prob.toFixed(1)+'%';
+  $('prob-pct').style.color  = isPneu ? '#EA4335' : '#34A853';
+
+  // Model vote bars
+  const votes = r.model_votes || {};
+  const barEls = document.querySelectorAll('.mvb');
+  barEls.forEach(row => {
+    const key  = row.dataset.key;
+    const prob = votes[key] ?? 0;
+    const pct  = (prob*100).toFixed(0);
+    const isP  = prob >= 0.5;
+    const fg   = isP ? '#EA4335' : '#34A853';
+    const bg   = isP ? 'rgba(234,67,53,.1)' : 'rgba(52,168,83,.1)';
+    row.querySelector('.mvb-fill').style.width     = pct+'%';
+    row.querySelector('.mvb-fill').style.background = fg;
+    row.querySelector('.mvb-pct').textContent       = pct+'%';
+    row.querySelector('.mvb-pct').style.color       = fg;
+    const st = row.querySelector('.mvb-status');
+    st.textContent      = isP ? 'Positive' : 'Normal';
+    st.style.color      = fg;
+    st.style.background = bg;
+  });
+
+  drawChart(votes);
+  setScanStatus('COMPLETE','#34A853','rgba(52,168,83,.1)','rgba(52,168,83,.3)');
+
+  if (r.heatmap_b64) {
+    $('heatmap-toggle-btn').disabled = false;
+  }
+  $('report-btn').disabled = false;
+}
+
+function buildModelVoteBars() {
+  const models = [
+    {key:'mobilenetv3',   name:'MobileNetV3'},
+    {key:'resnet50',      name:'ResNet-50'},
+    {key:'densenet121',   name:'DenseNet-121'},
+    {key:'efficientnet_b4',name:'EfficientNet-B4'},
+    {key:'vit_b16',       name:'ViT-B/16'},
+    {key:'inception_v3',  name:'InceptionV3'},
+  ];
+  $('model-votes-list').innerHTML = models.map(m=>`
+    <div class="mvb" data-key="${m.key}">
+      <span class="mvb-name">${m.name}</span>
+      <div class="mvb-track"><div class="mvb-fill" style="width:0"></div></div>
+      <span class="mvb-pct">--</span>
+      <span class="mvb-status">Waiting</span>
+    </div>`).join('');
+}
+
+// Heatmap toggle
+$('heatmap-toggle-btn').onclick = () => {
+  if (!S.scanHeatmapB64 && !S.scanImageB64) return;
+  const btn = $('heatmap-toggle-btn');
+  if (S.showingHeatmap) {
+    $('xray-display').innerHTML = `<img src="data:image/jpeg;base64,${S.scanImageB64}" alt="X-ray">`;
+    btn.textContent = 'Show Grad-CAM Heatmap';
+  } else {
+    $('xray-display').innerHTML = `<img src="data:image/png;base64,${S.scanHeatmapB64}" alt="Heatmap">`;
+    btn.textContent = 'Show Original X-Ray';
+  }
+  S.showingHeatmap = !S.showingHeatmap;
+};
+
+// Report (web: shows info message since PDF generation is server-side)
+$('report-btn').onclick = () => {
+  if (!S.scanResult) return;
+  showToast('PDF report generation is available in the desktop app.', 'success');
+};
+
+// Status badge helper
+function setScanStatus(text, color, bg, border) {
+  const b = $('scan-status-badge');
+  b.textContent = text;
+  b.style.color      = color;
+  b.style.background = bg;
+  b.style.border     = `1px solid ${border}`;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ANALYTICS CHART
+// ═══════════════════════════════════════════════════════════════
+function drawChart(votes) {
+  const canvas = $('analytics-canvas');
+  canvas.width  = canvas.offsetWidth  || 220;
+  canvas.height = canvas.offsetHeight || 150;
+  const ctx = canvas.getContext('2d');
+  const {width:w, height:h} = canvas;
+  ctx.clearRect(0,0,w,h);
+  const items = Object.entries(votes);
+  if (!items.length) {
+    ctx.fillStyle = 'rgba(137,180,250,.4)';
+    ctx.font = '9px Segoe UI';
+    ctx.textAlign = 'center';
+    ctx.fillText('Awaiting analysis', w/2, h/2);
+    return;
+  }
+  const n=items.length, pad=10, bot=26, top=8;
+  const slotW=(w-pad*2)/n;
+  items.forEach(([model,prob],i)=>{
+    const x=pad+i*slotW+2, bw=slotW-4;
+    const bh=Math.max(3,(h-bot-top)*prob);
+    const by=h-bot-bh;
+    ctx.fillStyle = prob>=0.5 ? 'rgba(234,67,53,.8)' : 'rgba(52,168,83,.8)';
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(x,by,bw,bh,3);
+    else ctx.rect(x,by,bw,bh);
+    ctx.fill();
+    ctx.fillStyle='rgba(137,180,250,.9)'; ctx.font='7px Segoe UI'; ctx.textAlign='center';
+    ctx.fillText(`${Math.round(prob*100)}%`,x+bw/2,by-2);
+    ctx.fillStyle='rgba(100,140,200,.7)'; ctx.font='6px Segoe UI';
+    ctx.fillText(model.slice(0,5).toUpperCase(),x+bw/2,h-bot+14);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PARTICLE CANVAS
+// ═══════════════════════════════════════════════════════════════
+class Particle {
+  constructor(w,h){ this.reset(w,h); }
+  reset(w,h){
+    this.x=Math.random()*w; this.y=Math.random()*h;
+    this.vx=(Math.random()-.5)*.6; this.vy=-Math.random()*.5-.1;
+    this.life=Math.random()*.5+.5; this.decay=Math.random()*.003+.003;
+    this.size=Math.random()*1.6+1.2;
+  }
+  update(w,h){
+    this.x+=this.vx; this.y+=this.vy; this.life-=this.decay;
+    if(this.life<=0||this.y<0||this.x<0||this.x>w) this.reset(w,h);
+  }
+}
+function startParticles(){
+  const canvas=$('scan-canvas');
+  canvas.width=window.innerWidth; canvas.height=window.innerHeight;
+  S.particles=Array.from({length:70},()=>new Particle(canvas.width,canvas.height));
+  const ctx=canvas.getContext('2d');
+  function tick(){
+    const w=canvas.width,h=canvas.height;
+    ctx.clearRect(0,0,w,h);
+    for(let i=0;i<S.particles.length-1;i+=6){
+      const p1=S.particles[i],p2=S.particles[Math.min(i+1,S.particles.length-1)];
+      const dist=Math.hypot(p1.x-p2.x,p1.y-p2.y);
+      if(dist<90){
+        const a=Math.round((1-dist/90)*Math.min(p1.life,p2.life)*100);
+        ctx.strokeStyle=`rgba(66,133,244,${a/255})`;
+        ctx.lineWidth=1; ctx.beginPath();
+        ctx.moveTo(p1.x,p1.y); ctx.lineTo(p2.x,p2.y); ctx.stroke();
+      }
+    }
+    S.particles.forEach(p=>{
+      p.update(w,h);
+      const a=Math.round(p.life*180);
+      ctx.fillStyle=`rgba(137,180,250,${a/255})`;
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.size,0,Math.PI*2); ctx.fill();
+    });
+    S.particleRaf=requestAnimationFrame(tick);
+  }
+  cancelAnimationFrame(S.particleRaf);
+  tick();
+}
+function stopParticles(){
+  cancelAnimationFrame(S.particleRaf);
+  const ctx=$('scan-canvas').getContext('2d');
+  ctx.clearRect(0,0,$('scan-canvas').width,$('scan-canvas').height);
+}
+window.addEventListener('resize',()=>{
+  if(!$('v-scan').classList.contains('hidden')){
+    $('scan-canvas').width=window.innerWidth;
+    $('scan-canvas').height=window.innerHeight;
+  }
+});
+</script>
+</body>
+</html>

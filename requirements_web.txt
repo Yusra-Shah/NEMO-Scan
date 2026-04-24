@@ -1,0 +1,14 @@
+fastapi>=0.110.0
+uvicorn[standard]>=0.29.0
+python-multipart>=0.0.9
+torch>=2.0.0
+torchvision>=0.15.0
+timm>=0.9.0
+opencv-python-headless>=4.8.0
+pillow>=10.0.0
+pymongo>=4.6.0
+bcrypt>=4.1.0
+numpy>=1.24.0
+grad-cam>=1.5.0
+python-dotenv>=1.0.0
+reportlab>=4.0.0
