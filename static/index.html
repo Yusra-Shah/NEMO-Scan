@@ -1221,6 +1221,13 @@ function renderScanResult(r) {
     $('heatmap-toggle-btn').disabled = false;
   }
   $('report-btn').disabled = false;
+
+  if (r.demo_mode) {
+    const note = document.createElement('div');
+    note.style.cssText = 'font-size:9px;color:rgba(137,180,250,.5);text-align:center;margin-top:6px;letter-spacing:1px';
+    note.textContent = 'DEMO MODE — simulated results (model weights not deployed)';
+    $('ens-label').parentElement.appendChild(note);
+  }
 }
 
 function buildModelVoteBars() {
