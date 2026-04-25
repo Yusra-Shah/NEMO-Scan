@@ -157,7 +157,8 @@ class InferenceEngine:
 
     Usage:
         engine = InferenceEngine()
-        engine.load_models('weights/lung')
+        engine.load_models('weights/lung')                      # float32
+        engine.load_models('weights/lung/float16', 'float16')  # float16 (GPU)
 
         quick  = engine.predict_quick('path/to/xray.jpg')
         result = engine.predict_full('path/to/xray.jpg', 'outputs/heatmaps')
@@ -168,6 +169,7 @@ class InferenceEngine:
         self.voting_models: Dict[str, nn.Module] = {}
         self.attention_cnn: Optional[AttentionCNN] = None
         self.models_loaded = False
+        self.precision = 'float32'
 
         # Single lock serializes ALL model forward passes.
         # This is the fix: no two forward passes can overlap.
@@ -175,25 +177,36 @@ class InferenceEngine:
 
         print(f'InferenceEngine initialized on {self.device}')
 
-    def load_models(self, weights_dir: str) -> Dict[str, bool]:
+    def load_models(self, weights_dir: str, precision: str = 'float32') -> Dict[str, bool]:
         """
         Loads all model weights from the weights directory.
+
+        Args:
+            weights_dir: Path to directory containing .pth files.
+            precision:   'float32' (default, desktop-safe) or 'float16'
+                         (halves VRAM/RAM; voting models run in fp16 while
+                         AttentionCNN stays fp32 for Grad-CAM gradient stability).
+
         Returns dict of {model_name: loaded_successfully}.
         """
+        self.precision = precision
         weights_dir = Path(weights_dir)
         status = {}
 
-        print('Loading model weights...')
+        print(f'Loading model weights (precision={precision})...')
 
         for name, cfg in MODEL_REGISTRY.items():
             weight_path = weights_dir / cfg['weight_file']
             if weight_path.exists():
                 try:
-                    self.voting_models[name] = load_timm_model(
+                    model = load_timm_model(
                         cfg['timm_name'],
                         str(weight_path),
-                        self.device
+                        self.device,
                     )
+                    if precision == 'float16':
+                        model.half()
+                    self.voting_models[name] = model
                     status[name] = True
                     print(f'  Loaded {name}')
                 except Exception as e:
@@ -206,9 +219,11 @@ class InferenceEngine:
         attn_path = weights_dir / ATTENTION_CNN_FILE
         if attn_path.exists():
             try:
+                # AttentionCNN always stays float32: Grad-CAM gradients can
+                # underflow to zero in float16, producing blank heatmaps.
                 self.attention_cnn = load_attention_cnn(str(attn_path), self.device)
                 status['attention_cnn'] = True
-                print(f'  Loaded attention_cnn')
+                print(f'  Loaded attention_cnn (float32 for Grad-CAM)')
             except Exception as e:
                 status['attention_cnn'] = False
                 print(f'  Failed attention_cnn: {e}')
@@ -231,13 +246,15 @@ class InferenceEngine:
         """
         img_size = MODEL_REGISTRY[name]['img_size']
         tensor = preprocess_image(image_path, img_size).to(self.device)
+        if self.precision == 'float16':
+            tensor = tensor.half()
         model = self.voting_models[name]
 
         with self._inference_lock:
             model.eval()                      # force eval mode every time
             with torch.no_grad():
                 logits = model(tensor)
-                probs  = F.softmax(logits, dim=1)
+                probs  = F.softmax(logits.float(), dim=1)  # float32 for softmax stability
                 return probs[0, 1].item()     # P(Pneumonia)
 
     def predict_quick(self, image_path: str) -> Dict:

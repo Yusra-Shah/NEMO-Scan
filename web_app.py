@@ -46,19 +46,29 @@ _engine = None
 @app.on_event("startup")
 async def _startup():
     global _engine
-    weights_dir = os.path.join(ROOT, "weights", "lung")
-    pth_files = list(Path(weights_dir).glob("*.pth")) if os.path.isdir(weights_dir) else []
-    if not pth_files:
+
+    # Prefer float16 weights (half the size); fall back to float32.
+    fp16_dir = os.path.join(ROOT, "weights", "lung", "float16")
+    fp32_dir = os.path.join(ROOT, "weights", "lung")
+
+    if os.path.isdir(fp16_dir) and list(Path(fp16_dir).glob("*.pth")):
+        weights_dir = fp16_dir
+        precision   = "float16"
+    elif os.path.isdir(fp32_dir) and list(Path(fp32_dir).glob("*.pth")):
+        weights_dir = fp32_dir
+        precision   = "float32"
+    else:
         print("No .pth weight files found — running in demo mode.")
         _engine = None
         return
+
     try:
         from core.inference.engine import InferenceEngine
         _engine = InferenceEngine()
         await asyncio.get_event_loop().run_in_executor(
-            None, _engine.load_models, weights_dir
+            None, _engine.load_models, weights_dir, precision
         )
-        print("✓ InferenceEngine loaded.")
+        print(f"✓ InferenceEngine loaded ({precision}, {weights_dir}).")
     except Exception as exc:
         print(f"Warning: Could not load inference engine: {exc}")
         _engine = None
