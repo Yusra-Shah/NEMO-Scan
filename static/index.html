@@ -398,12 +398,15 @@ input,select,textarea{font-family:var(--font)}
     <label class="f-label" for="login-password">Password</label>
     <input class="f-input" id="login-password" type="password" placeholder="••••••••">
     <button class="login-btn" id="login-btn">Log in</button>
+    <div style="text-align:center; margin-top:16px; font-size:13px; color:#5F6368;">
+      New to NEMO Scan?
+      <a href="#" id="show-register-link" style="color:#4285F4; text-decoration:none; font-weight:600;">Create Account</a>
+    </div>
     <div class="login-err" id="login-err"></div>
-    <div class="login-switch">New to NEMO Scan? <span id="switch-to-register">Create Account</span></div>
   </div>
 
   <!-- Register card (toggle with login card) -->
-  <div class="login-card hidden" id="register-card">
+  <div class="login-card" id="register-card" style="display:none">
     <div class="nemo-mark"><span class="n">N</span><span class="e">E</span><span class="m">M</span><span class="o">O</span><span class="s">Scan</span></div>
     <div class="login-sub">Create a new doctor account.</div>
     <label class="f-label" for="drc-name">Full Name</label>
@@ -882,14 +885,15 @@ $('logout-btn').onclick = () => {
 };
 
 // ── Login ↔ Register toggle ──────────────────────────────────────────────────
-$('switch-to-register').onclick = () => {
-  $('login-card-main').classList.add('hidden');
-  $('register-card').classList.remove('hidden');
+document.getElementById('show-register-link')?.addEventListener('click', function(e) {
+  e.preventDefault();
+  document.getElementById('login-card-main').style.display = 'none';
+  document.getElementById('register-card').style.display = 'block';
   $('drc-err').textContent = '';
-};
+});
 $('switch-to-login').onclick = () => {
-  $('register-card').classList.add('hidden');
-  $('login-card-main').classList.remove('hidden');
+  document.getElementById('register-card').style.display = 'none';
+  document.getElementById('login-card-main').style.display = 'block';
   $('login-err').textContent = '';
 };
 
@@ -910,8 +914,8 @@ $('drc-btn').onclick = async () => {
   $('drc-btn').textContent = 'Creating account...';
   try {
     S.doctor = await api.register(name, email, pass, confirm, spec);
-    $('register-card').classList.add('hidden');
-    $('login-card-main').classList.remove('hidden');
+    document.getElementById('register-card').style.display = 'none';
+    document.getElementById('login-card-main').style.display = 'block';
     enterApp();
   } catch(e) {
     $('drc-err').textContent = e.message;
