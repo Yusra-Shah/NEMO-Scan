@@ -343,6 +343,33 @@ input,select,textarea{font-family:var(--font)}
 .modal-foot{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
 .modal-err{font-size:11px;color:var(--red);min-height:16px;margin-top:8px}
 
+/* ── Register / login switch ────────────────────────────────── */
+.login-switch{font-size:11px;color:var(--text-sec);margin-top:16px}
+.login-switch span{color:var(--blue);cursor:pointer;font-weight:500}
+.login-switch span:hover{text-decoration:underline}
+
+/* ── Holo modal (notes dialog — shown over scan overlay) ─────── */
+.modal-box-holo{
+  background:rgba(10,25,50,.98);border:1px solid rgba(66,133,244,.5);color:#E8F0FE
+}
+.modal-box-holo .modal-title{color:#89B4FA}
+.modal-box-holo .modal-sub{color:#8AB4F8}
+.holo-textarea{
+  width:100%;background:rgba(15,35,70,.9);
+  border:1px solid rgba(66,133,244,.4);border-radius:8px;
+  padding:8px 10px;color:#E8F0FE;font-size:11px;font-family:var(--font);
+  resize:vertical;min-height:110px;outline:none;margin-bottom:14px
+}
+.holo-textarea:focus{border-color:#4285F4}
+.holo-textarea::placeholder{color:rgba(138,180,248,.5)}
+.holo-btn-skip{
+  background:transparent;color:#8AB4F8;
+  border:1px solid rgba(66,133,244,.35);border-radius:var(--btn-r);
+  padding:0 20px;height:36px;font-size:11px;font-weight:600;
+  transition:background .15s
+}
+.holo-btn-skip:hover{background:rgba(66,133,244,.1)}
+
 /* ── Scrollbars ─────────────────────────────────────────────── */
 ::-webkit-scrollbar{width:6px}
 ::-webkit-scrollbar-track{background:var(--bg)}
@@ -363,7 +390,7 @@ input,select,textarea{font-family:var(--font)}
 
 <!-- ──────────────────── LOGIN ──────────────────── -->
 <div id="v-login" class="view">
-  <div class="login-card">
+  <div class="login-card" id="login-card-main">
     <div class="nemo-mark"><span class="n">N</span><span class="e">E</span><span class="m">M</span><span class="o">O</span><span class="s">Scan</span></div>
     <div class="login-sub">Neural Engine for Medical Observation — Lung Module</div>
     <label class="f-label" for="login-email">Email</label>
@@ -372,6 +399,33 @@ input,select,textarea{font-family:var(--font)}
     <input class="f-input" id="login-password" type="password" placeholder="••••••••">
     <button class="login-btn" id="login-btn">Log in</button>
     <div class="login-err" id="login-err"></div>
+    <div class="login-switch">New to NEMO Scan? <span id="switch-to-register">Create Account</span></div>
+  </div>
+
+  <!-- Register card (toggle with login card) -->
+  <div class="login-card hidden" id="register-card">
+    <div class="nemo-mark"><span class="n">N</span><span class="e">E</span><span class="m">M</span><span class="o">O</span><span class="s">Scan</span></div>
+    <div class="login-sub">Create a new doctor account.</div>
+    <label class="f-label" for="drc-name">Full Name</label>
+    <input class="f-input" id="drc-name" type="text" placeholder="Dr. Jane Smith" autocomplete="name">
+    <label class="f-label" for="drc-email">Email Address</label>
+    <input class="f-input" id="drc-email" type="email" placeholder="doctor@hospital.com" autocomplete="email">
+    <label class="f-label" for="drc-spec">Specialization</label>
+    <select class="f-input" id="drc-spec" style="padding:0 16px;cursor:pointer">
+      <option>General Physician</option>
+      <option>Pulmonologist</option>
+      <option>Radiologist</option>
+      <option>Internal Medicine</option>
+      <option>Pediatrician</option>
+      <option>Other</option>
+    </select>
+    <label class="f-label" for="drc-pass">Password</label>
+    <input class="f-input" id="drc-pass" type="password" placeholder="Minimum 6 characters" autocomplete="new-password">
+    <label class="f-label" for="drc-confirm">Confirm Password</label>
+    <input class="f-input" id="drc-confirm" type="password" placeholder="Re-enter password" autocomplete="new-password">
+    <div class="login-err" id="drc-err"></div>
+    <button class="login-btn" id="drc-btn" style="background:var(--green);margin-top:8px">Create Account</button>
+    <div class="login-switch">Already have an account? <span id="switch-to-login">Sign In</span></div>
   </div>
 </div>
 
@@ -454,8 +508,9 @@ input,select,textarea{font-family:var(--font)}
       <div class="sec-title">Quick Actions</div>
       <div class="quick-actions" style="margin-bottom:32px">
         <button class="btn-primary" id="qa-register">Register New Patient</button>
-        <button class="btn-outline" id="qa-patients">All Patients</button>
+        <button class="btn-outline" id="qa-find-patient">Find Patient</button>
         <button class="btn-outline" id="qa-scan">New Scan</button>
+        <button class="btn-outline" id="qa-patients">All Patients</button>
       </div>
       <div class="sec-title">Recent Scans</div>
       <div class="activity-card" id="activity-list">
@@ -641,6 +696,20 @@ input,select,textarea{font-family:var(--font)}
   </div>
 </div>
 
+<!-- Notes modal (doctor notes before PDF generation — holo dark theme) -->
+<div class="modal-ov hidden" id="notes-modal" style="z-index:300">
+  <div class="modal-box modal-box-holo">
+    <div class="modal-title">Add Doctor Notes &nbsp;<span style="font-weight:400;font-size:11px;color:#8AB4F8">(optional)</span></div>
+    <div class="modal-sub" style="margin-bottom:14px">These notes will appear in the PDF report. Leave blank to skip.</div>
+    <textarea class="holo-textarea" id="notes-text"
+      placeholder="e.g. Patient shows right lower lobe consolidation consistent with bacterial pneumonia. Recommend antibiotic therapy and follow-up X-ray in 2 weeks."></textarea>
+    <div class="modal-foot">
+      <button class="holo-btn-skip" id="notes-skip-btn">Skip &amp; Generate</button>
+      <button class="btn-primary btn-sm" id="notes-gen-btn">Generate Report</button>
+    </div>
+  </div>
+</div>
+
 <!-- Toast -->
 <div id="toast"></div>
 
@@ -715,6 +784,26 @@ const api = {
     const d = await r.json();
     if (!r.ok) throw new Error(d.detail || 'Scan failed');
     return d;
+  },
+  async register(name, email, password, confirmPassword, specialization) {
+    const r = await fetch('/api/register', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({name, email, password, confirm_password: confirmPassword, specialization})
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.detail || 'Registration failed');
+    return d.doctor;
+  },
+  async generateReport(body) {
+    const r = await fetch('/api/report', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(body)
+    });
+    if (!r.ok) {
+      const d = await r.json().catch(()=>({}));
+      throw new Error(d.detail || 'Report generation failed');
+    }
+    return r.blob();
   },
 };
 
@@ -792,6 +881,49 @@ $('logout-btn').onclick = () => {
   $('login-password').value = '';
 };
 
+// ── Login ↔ Register toggle ──────────────────────────────────────────────────
+$('switch-to-register').onclick = () => {
+  $('login-card-main').classList.add('hidden');
+  $('register-card').classList.remove('hidden');
+  $('drc-err').textContent = '';
+};
+$('switch-to-login').onclick = () => {
+  $('register-card').classList.add('hidden');
+  $('login-card-main').classList.remove('hidden');
+  $('login-err').textContent = '';
+};
+
+// Register form submit
+$('drc-btn').onclick = async () => {
+  const name    = $('drc-name').value.trim();
+  const email   = $('drc-email').value.trim();
+  const spec    = $('drc-spec').value;
+  const pass    = $('drc-pass').value;
+  const confirm = $('drc-confirm').value;
+  $('drc-err').textContent = '';
+
+  if (!name || !email || !pass) { $('drc-err').textContent='All fields are required.'; return; }
+  if (pass.length < 6)          { $('drc-err').textContent='Password must be at least 6 characters.'; return; }
+  if (pass !== confirm)         { $('drc-err').textContent='Passwords do not match.'; return; }
+
+  $('drc-btn').disabled = true;
+  $('drc-btn').textContent = 'Creating account...';
+  try {
+    S.doctor = await api.register(name, email, pass, confirm, spec);
+    $('register-card').classList.add('hidden');
+    $('login-card-main').classList.remove('hidden');
+    enterApp();
+  } catch(e) {
+    $('drc-err').textContent = e.message;
+  } finally {
+    $('drc-btn').disabled = false;
+    $('drc-btn').textContent = 'Create Account';
+  }
+};
+['drc-pass','drc-confirm'].forEach(id => {
+  $(id).addEventListener('keydown', e => { if(e.key==='Enter') $('drc-btn').click(); });
+});
+
 // ═══════════════════════════════════════════════════════════════
 // NAVIGATION
 // ═══════════════════════════════════════════════════════════════
@@ -810,10 +942,15 @@ function showPanel(name) {
   S.panel = name;
   if (name==='patients') loadPatients();
 }
-$('dash-scan-btn').onclick = () => openScan();
-$('qa-scan').onclick       = () => openScan();
-$('qa-patients').onclick   = () => { showPanel('patients'); setNavActive('patients'); };
-$('qa-register').onclick   = () => openRegisterModal();
+$('dash-scan-btn').onclick     = () => openScan();
+$('qa-scan').onclick           = () => openScan();
+$('qa-patients').onclick       = () => { showPanel('patients'); setNavActive('patients'); };
+$('qa-register').onclick       = () => openRegisterModal();
+$('qa-find-patient').onclick   = () => {
+  showPanel('patients');
+  setNavActive('patients');
+  setTimeout(() => { $('pat-search').focus(); }, 100);
+};
 function setNavActive(panel) {
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.panel===panel));
 }
@@ -941,19 +1078,22 @@ async function renderPatientDetail(patient) {
       ${scans.length ? `
         <table class="scan-tbl">
           <thead><tr>
-            <th>Date</th><th>Diagnosis</th><th>Confidence</th><th>Severity</th>
+            <th>Date</th><th>Diagnosis</th><th>Confidence</th><th>Severity</th><th>Subtype</th>
           </tr></thead>
           <tbody>
             ${scans.map(s => {
-              const pred = s.result?.prediction || 'Unknown';
-              const isPneu = pred.toUpperCase()==='PNEUMONIA';
-              const bc = isPneu ? 'badge-p' : 'badge-n';
-              const conf = ((s.result?.confidence||0)*100).toFixed(1);
+              const pred    = s.result?.prediction || 'Unknown';
+              const isPneu  = pred.toUpperCase()==='PNEUMONIA';
+              const bc      = isPneu ? 'badge-p' : 'badge-n';
+              const conf    = ((s.result?.confidence||0)*100).toFixed(1);
+              const sev     = s.result?.severity || '--';
+              const subtype = s.result?.subtype  || '--';
               return `<tr>
                 <td>${fmtDate(s.scan_date)}</td>
                 <td><span class="badge ${bc}">${pred.charAt(0)+pred.slice(1).toLowerCase()}</span></td>
                 <td>${conf}%</td>
-                <td>${s.result?.severity||'--'}</td>
+                <td>${sev}</td>
+                <td>${subtype}</td>
               </tr>`;
             }).join('')}
           </tbody>
@@ -1262,11 +1402,56 @@ $('heatmap-toggle-btn').onclick = () => {
   S.showingHeatmap = !S.showingHeatmap;
 };
 
-// Report (web: shows info message since PDF generation is server-side)
+// Report button → open notes dialog
 $('report-btn').onclick = () => {
   if (!S.scanResult) return;
-  showToast('PDF report generation is available in the desktop app.', 'success');
+  $('notes-text').value = '';
+  $('notes-modal').classList.remove('hidden');
 };
+
+// Notes modal handlers
+$('notes-modal').onclick = e => { if(e.target===$('notes-modal')) $('notes-modal').classList.add('hidden'); };
+$('notes-skip-btn').onclick = () => _submitReport('');
+$('notes-gen-btn').onclick  = () => _submitReport($('notes-text').value.trim());
+
+async function _submitReport(doctorNotes) {
+  $('notes-modal').classList.add('hidden');
+  $('report-btn').disabled = true;
+  $('report-btn').textContent = 'Generating...';
+
+  try {
+    const r = S.scanResult;
+    const blob = await api.generateReport({
+      patient:      S.scanPatient || {},
+      doctor:       S.doctor     || {},
+      result: {
+        prediction:    r.prediction    || 'Unknown',
+        confidence:    Number(r.confidence    || 0),
+        ensemble_prob: Number(r.ensemble_prob || r.confidence || 0),
+        severity:      r.severity      || 'None',
+        subtype:       r.subtype       || 'N/A',
+      },
+      model_votes:  r.model_votes || {},
+      scan_id:      r.scan_id     || '',
+      doctor_notes: doctorNotes,
+    });
+
+    // Trigger browser download
+    const url = URL.createObjectURL(blob);
+    const a   = document.createElement('a');
+    a.href     = url;
+    a.download = `nemo_report_${S.scanPatient?.patient_id || 'report'}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 1500);
+    showToast('PDF report downloaded successfully.', 'success');
+  } catch(e) {
+    showToast('Report error: ' + e.message, 'error');
+  } finally {
+    $('report-btn').disabled = false;
+    $('report-btn').textContent = 'Generate PDF Report';
+  }
+}
 
 // Status badge helper
 function setScanStatus(text, color, bg, border) {

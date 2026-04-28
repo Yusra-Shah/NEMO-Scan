@@ -24,7 +24,7 @@ load_dotenv()
 
 from fastapi import FastAPI, File, UploadFile, Form, HTTPException, Request
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, Response
 from fastapi.middleware.cors import CORSMiddleware
 
 import database.db as db
@@ -102,6 +102,32 @@ async def login(request: Request):
         raise
     except Exception as exc:
         raise HTTPException(401, str(exc))
+
+
+# ── Register ──────────────────────────────────────────────────────────────────
+@app.post("/api/register")
+async def register(request: Request):
+    body = await request.json()
+    name         = (body.get("name", "") or "").strip()
+    email        = (body.get("email", "") or "").strip()
+    password     = body.get("password", "") or ""
+    confirm      = body.get("confirm_password", "") or ""
+    specialization = (body.get("specialization", "General Physician") or "General Physician").strip()
+
+    if not name or not email or not password:
+        raise HTTPException(400, "Full name, email, and password are required.")
+    if len(password) < 6:
+        raise HTTPException(400, "Password must be at least 6 characters.")
+    if confirm and confirm != password:
+        raise HTTPException(400, "Passwords do not match.")
+
+    try:
+        doctor = db.register_doctor(name, email, password, specialization)
+        return JSONResponse({"doctor": _serial(doctor)})
+    except ValueError as exc:
+        raise HTTPException(400, str(exc))
+    except Exception as exc:
+        raise HTTPException(500, str(exc))
 
 
 # ── Scan ──────────────────────────────────────────────────────────────────────
@@ -231,6 +257,16 @@ async def get_patients(doctor_id: str, q: str = ""):
         raise HTTPException(500, str(exc))
 
 
+@app.get("/api/patients/search")
+async def search_patients_route(doctor_id: str, q: str = ""):
+    """Dedicated search endpoint — alias for GET /api/patients?q=..."""
+    try:
+        patients = db.search_patients(q, doctor_id) if q else db.get_all_patients(doctor_id)
+        return JSONResponse(_serial(patients))
+    except Exception as exc:
+        raise HTTPException(500, str(exc))
+
+
 @app.get("/api/patients/{patient_id}")
 async def get_patient(patient_id: str):
     try:
@@ -272,6 +308,66 @@ async def register_patient(request: Request):
         raise HTTPException(400, str(exc))
     except Exception as exc:
         raise HTTPException(500, str(exc))
+
+
+# ── PDF Report ────────────────────────────────────────────────────────────────
+@app.post("/api/report")
+async def generate_pdf_report(request: Request):
+    """
+    Generate a PDF diagnostic report and return it as a downloadable file.
+    Body JSON keys: patient, doctor, result, model_votes, scan_id, doctor_notes
+    """
+    import tempfile
+    from core.report_generator import generate_report as _gen_report
+
+    body         = await request.json()
+    patient      = body.get("patient", {}) or {}
+    doctor       = body.get("doctor",  {}) or {}
+    result       = body.get("result",  {}) or {}
+    model_votes  = dict(body.get("model_votes", {}) or {})
+    scan_id      = body.get("scan_id", "") or ""
+    doctor_notes = body.get("doctor_notes", "") or ""
+
+    # ensure all seven model keys present
+    for key in ("densenet121","resnet50","efficientnet_b4","vit_b16",
+                "mobilenetv3","inception_v3","attention_cnn"):
+        model_votes.setdefault(key, 0.0)
+
+    try:
+        scan_date = datetime.now(timezone.utc)
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            pdf_path = await asyncio.get_event_loop().run_in_executor(
+                None,
+                lambda: _gen_report(
+                    patient=patient,
+                    doctor=doctor,
+                    result=result,
+                    model_votes=model_votes,
+                    scan_date=scan_date,
+                    heatmap_path="",
+                    doctor_notes=doctor_notes,
+                    output_dir=tmp_dir,
+                ),
+            )
+            with open(pdf_path, "rb") as f:
+                pdf_bytes = f.read()
+
+        # persist report path in MongoDB if the scan was saved
+        if scan_id:
+            try:
+                db.update_scan_report_path(scan_id, pdf_path)
+            except Exception as exc:
+                print(f"Warning: could not update report path: {exc}")
+
+        patient_id = patient.get("patient_id", "report")
+        filename   = f"nemo_report_{patient_id}.pdf"
+        return Response(
+            content=pdf_bytes,
+            media_type="application/pdf",
+            headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+        )
+    except Exception as exc:
+        raise HTTPException(500, f"Report generation failed: {exc}")
 
 
 # ── Serialisation helper ──────────────────────────────────────────────────────
