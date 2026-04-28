@@ -588,6 +588,7 @@ input,select,textarea{font-family:var(--font)}
           <div class="upload-hint">Upload a chest X-ray image to begin AI analysis</div>
           <div class="upload-acts">
             <button class="h-btn-primary" id="upload-btn" disabled>Upload from Device</button>
+            <button class="h-btn" id="paste-btn" disabled>Paste from Clipboard</button>
             <button class="h-btn" id="scan-upload-cancel" style="display:none">Cancel</button>
           </div>
           <div style="font-size:9px;color:#8AB4F8">Supported: JPEG, PNG, BMP, TIFF</div>
@@ -1183,6 +1184,7 @@ function openScan(patient=null) {
     $('scan-pid-name').textContent = patient.name;
     $('scan-pid-err').style.display = 'none';
     $('upload-btn').disabled = false;
+    $('paste-btn').disabled  = false;
   }
   $('scan-doc-lbl').textContent = `Dr. ${S.doctor?.name || ''}`;
   $('v-scan').classList.remove('hidden');
@@ -1205,6 +1207,7 @@ function resetScan() {
   $('scan-pid-err').style.display = 'none';
   $('xray-prev').innerHTML = '<div>X-RAY PREVIEW</div><div style="font-size:10px;opacity:.6">No image loaded</div>';
   $('upload-btn').disabled = true;
+  $('paste-btn').disabled  = true;
   $('analyze-btn').disabled = true;
   $('analyze-btn').className = 'analyze-btn off';
   $('scan-upload-page').classList.remove('hidden');
@@ -1223,7 +1226,7 @@ $('scan-pid').addEventListener('input', () => {
   const pid = $('scan-pid').value.trim();
   if (!pid) {
     $('scan-pid-name').textContent=''; $('scan-pid-err').style.display='none';
-    S.scanPatient=null; $('upload-btn').disabled=true; return;
+    S.scanPatient=null; $('upload-btn').disabled=true; $('paste-btn').disabled=true; return;
   }
   pidTimer = setTimeout(async()=>{
     try {
@@ -1232,28 +1235,66 @@ $('scan-pid').addEventListener('input', () => {
       $('scan-pid-name').textContent = p.name;
       $('scan-pid-err').style.display = 'none';
       $('upload-btn').disabled = false;
+      $('paste-btn').disabled  = false;
     } catch {
       S.scanPatient=null;
       $('scan-pid-name').textContent='';
       $('scan-pid-err').style.display='block';
       $('upload-btn').disabled=true;
+      $('paste-btn').disabled=true;
     }
   }, 600);
 });
 
 // File handling
-$('upload-btn').onclick = () => $('file-input').click();
-$('xray-prev').onclick  = () => { if(!$('upload-btn').disabled) $('file-input').click(); };
-$('file-input').onchange = e => {
-  const file = e.target.files[0];
+function loadImageFile(file) {
   if (!file) return;
   S.scanFile = file;
   const url = URL.createObjectURL(file);
   $('xray-prev').innerHTML = `<img src="${url}" alt="X-ray preview">`;
   $('analyze-btn').disabled = false;
   $('analyze-btn').className = 'analyze-btn on';
+}
+
+$('upload-btn').onclick = () => $('file-input').click();
+$('xray-prev').onclick  = () => { if(!$('upload-btn').disabled) $('file-input').click(); };
+$('file-input').onchange = e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  loadImageFile(file);
   e.target.value = '';
 };
+
+// Paste from Clipboard
+document.getElementById('paste-btn').addEventListener('click', async function() {
+  try {
+    const clipboardItems = await navigator.clipboard.read();
+    for (const item of clipboardItems) {
+      for (const type of item.types) {
+        if (type.startsWith('image/')) {
+          const blob = await item.getType(type);
+          const file = new File([blob], 'clipboard_image.png', { type });
+          loadImageFile(file);
+          return;
+        }
+      }
+    }
+    alert('No image found in clipboard. Copy an image first then try again.');
+  } catch (err) {
+    alert('Clipboard access denied. Please use Upload from Device instead, or copy an image and try again.');
+  }
+});
+
+// Ctrl+V shortcut — fires paste logic when scan panel is open and no text input is focused
+window.addEventListener('keydown', function(e) {
+  if (e.ctrlKey && e.key === 'v'
+      && !$('v-scan').classList.contains('hidden')
+      && !$('paste-btn').disabled
+      && !['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName)) {
+    e.preventDefault();
+    document.getElementById('paste-btn').click();
+  }
+});
 
 // Analyze
 $('analyze-btn').onclick = async () => {
