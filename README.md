@@ -1,17 +1,16 @@
 # PneumoScan
 
-**AI-powered pneumonia detection from chest X-rays. 7 deep learning models. Real ensemble inference. Built end-to-end in Python.**
+AI-powered pneumonia detection from chest X-rays. 7 deep learning models. Weighted ensemble inference. Built end-to-end in Python.
 
-> Live Demo: [https://yusra-shah--pneumo-scan-serve.modal.run](https://yusra-shah--pneumo-scan-serve.modal.run)
-> GitHub: [https://github.com/Yusra-Shah/Pneumo-Scan](https://github.com/Yusra-Shah/Pneumo-Scan)
+**Live Demo:** https://yusra-shah--pneumo-scan-serve.modal.run
 
 ---
 
-## What it does
+## Overview
 
-A doctor logs in, registers a patient, and uploads a chest X-ray. PneumoScan runs the image through a 7-model ensemble and returns a diagnosis in seconds. Every model votes independently. Results show confidence, severity, subtype, and a Grad-CAM heatmap highlighting exactly which lung regions the AI examined. A bilingual PDF report (English + Urdu) is generated and saved per patient.
+A doctor logs in, registers a patient, and uploads a chest X-ray. PneumoScan runs the image through a 7-model ensemble and returns a diagnosis. Every model votes independently. Results include confidence score, severity, subtype, and a Grad-CAM heatmap showing which lung regions influenced the prediction. A bilingual PDF report (English + Urdu) is generated and saved per patient in MongoDB.
 
-This is not a demo with hardcoded outputs. Every result comes from real PyTorch inference on trained weights.
+All results come from real PyTorch inference on trained weights.
 
 ---
 
@@ -26,22 +25,25 @@ This is not a demo with hardcoded outputs. Every result comes from real PyTorch 
 ### Scan Upload
 ![Scan](screenshots/Scan.png)
 
-### Analyzing in real time
+### Real-time Analysis
 ![Analyzing](screenshots/Analyzing.png)
 
-### Normal result with Grad-CAM heatmap
-![Normal](screenshots/Grad-Cam.png)
+### Grad-CAM Heatmap
+![Grad-CAM](screenshots/Grad-Cam.png)
 
-### Pneumonia detected — Severe, Bacterial, 95.55% confidence
+### Normal Result
+![Normal](screenshots/Normal.png)
+
+### Pneumonia Detected — Severe, Bacterial, 95.55%
 ![Pneumonia](screenshots/Penumonia.png)
 
 ### Patient Records
 ![Patient Records](screenshots/Patient_records.png)
 
-### Patient Profile with full scan history
+### Patient Profile with Scan History
 ![Patient](screenshots/Patient.png)
 
-### AI Models Panel — all 7 loaded
+### AI Models Panel
 ![Models](screenshots/models.png)
 
 ### Generated PDF Report
@@ -51,33 +53,32 @@ This is not a demo with hardcoded outputs. Every result comes from real PyTorch 
 
 ## Models
 
-7 deep learning models trained on 15,000 chest X-rays (Kermany + NIH ChestX-ray14 + Albumentations augmentation). Weighted soft-vote ensemble. All weights are float16 for deployment efficiency.
+Trained on 15,000 chest X-rays. Weighted soft-vote ensemble. Weights stored in float16 for deployment.
 
 | Model | Role | Val Acc | Test Acc | Weight |
 |---|---|---|---|---|
-| DenseNet-121 | Anchor (CheXNet architecture) | 98.87% | 98.67% | 0.25 |
+| DenseNet-121 | Anchor — CheXNet architecture | 98.87% | 98.67% | 0.25 |
 | InceptionV3 | Multi-scale feature detection | 98.80% | 98.73% | 0.10 |
 | AttentionCNN | Grad-CAM explainability | 98.67% | 98.13% | 0.00 |
 | EfficientNet-B4 | Efficiency and accuracy balance | 98.40% | 98.20% | 0.20 |
-| ViT-B/16 | Global pattern detection (Transformer) | 98.13% | 97.73% | 0.17 |
+| ViT-B/16 | Global pattern detection | 98.13% | 97.73% | 0.17 |
 | ResNet-50 | General-purpose feature extractor | 98.47% | 97.67% | 0.18 |
 | MobileNetV3 | Speed model, runs first | 97.13% | 97.80% | 0.10 |
 
-Ensemble accuracy: **98.4%**
+Ensemble accuracy: 98.4%
 
 ---
 
 ## Features
 
-- Real bcrypt authentication against MongoDB Atlas doctors collection
-- Patient registration and full medical history tracking
-- Scan analysis with per-model vote breakdown
-- Grad-CAM heatmap overlay showing which regions triggered the diagnosis
+- Doctor authentication with bcrypt hashed passwords and MongoDB session management
+- Patient registration, search, and full medical history tracking
+- Real-time ensemble inference with per-model vote breakdown
+- Grad-CAM heatmap overlay on the original X-ray
 - Severity grading: None / Mild / Moderate / Severe
 - Subtype classification: Bacterial or Viral
-- Bilingual PDF report generation (English + Urdu) via ReportLab
-- All scan records stored per patient in MongoDB with nested document structure
-- MongoDB transactions and audit logging for DBMS compliance
+- Bilingual PDF report generation in English and Urdu via ReportLab
+- MongoDB Atlas with transactions, nested documents, and audit logging
 
 ---
 
@@ -85,13 +86,13 @@ Ensemble accuracy: **98.4%**
 
 | Layer | Technology |
 |---|---|
-| GUI | PySide6 6.6.1, Material You design system |
+| GUI | PySide6 6.6.1 |
 | Deep learning | PyTorch 2.1.0, timm 0.9.7 |
 | Explainability | grad-cam 1.4.8, OpenCV |
-| Database | MongoDB Atlas (transactions, nested docs, audit log) |
+| Database | MongoDB Atlas |
 | Reports | ReportLab 4.3.0 |
-| Deployment | Modal (serverless GPU), float16 weights |
-| Auth | bcrypt, session management |
+| Deployment | Modal serverless |
+| Auth | bcrypt |
 
 ---
 
@@ -99,11 +100,24 @@ Ensemble accuracy: **98.4%**
 
 15,000 balanced chest X-ray images. 7,500 Normal, 7,500 Pneumonia.
 
-- Kaggle Kermany dataset (real images)
-- NIH ChestX-ray14 (No Finding label, filtered via CSV)
-- Albumentations augmentation pipeline (CLAHE, elastic distortion, Gaussian noise, rotation, flip, brightness/contrast)
+Sources: Kaggle Kermany dataset, NIH ChestX-ray14, Albumentations augmentation pipeline.
 
 Split: 80% train / 10% val / 10% test, stratified.
+
+---
+
+## Run Locally
+
+```bash
+git clone https://github.com/Yusra-Shah/Pneumo-Scan.git
+cd Pneumo-Scan
+python -m venv nemo_env
+nemo_env\Scripts\activate
+pip install -r requirements.txt
+python main.py
+```
+
+Requires Python 3.12 and a MongoDB Atlas URI in `config.yaml`.
 
 ---
 
@@ -121,41 +135,17 @@ Pneumo/
     scan_panel.py
     patients_panel.py
     models_panel.py
-    styles.py                 Full Material You stylesheet
+    styles.py
   database/                   MongoDB Atlas integration
-  domains/lung/               Dataset and domain scaffold
   weights/lung/               Trained .pth files (float16)
   outputs/
     reports/                  Generated PDFs
     heatmaps/                 Saved Grad-CAM overlays
-  training/                   Training scripts, augmentation pipeline
-  modal_app.py                Modal serverless deployment
+  training/                   Training scripts and augmentation pipeline
+  modal_app.py                Modal deployment
   main.py                     Entry point
 ```
 
 ---
 
-## Run locally
-
-```bash
-git clone https://github.com/Yusra-Shah/Pneumo-Scan.git
-cd Pneumo-Scan
-python -m venv nemo_env
-nemo_env\Scripts\activate
-pip install -r requirements.txt
-python main.py
-```
-
-Requires Python 3.12. MongoDB Atlas URI in config.yaml or environment variable.
-
----
-
-## Context
-
-Built as an internship portfolio project and Advanced DBMS course project at Sukkur IBA University. The architecture uses a domain registry pattern designed to support future expansion into cornea analysis and bone fracture detection without modifying existing code.
-
-This is the lung module. The full multi-domain platform (NEMO Scan) is planned for development.
-
----
-
-*Solo project by Yusra Shah*
+*Built by Yusra Shah and Sinya Kumari — Sukkur IBA University, 2026*
