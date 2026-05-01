@@ -1,8 +1,8 @@
-"""
-NEMO Scan - Application Entry Point
+﻿"""
+PneumoScan - Application Entry Point
 Location: main.py
 
-Run this file to start NEMO Scan:
+Run this file to start PneumoScan:
     python main.py
 """
 
@@ -46,7 +46,7 @@ def load_engine():
 
 def main():
     app = QApplication(sys.argv)
-    app.setApplicationName("NEMO Scan")
+    app.setApplicationName("PneumoScan")
     app.setStyle("Fusion")
     app.setFont(QFont(FONT_FAMILY, 12))
     app.setStyleSheet(MAIN_STYLE)

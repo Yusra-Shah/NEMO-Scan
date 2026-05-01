@@ -1,5 +1,5 @@
-"""
-Convert NEMO Scan model weights from float32 to float16.
+﻿"""
+Convert PneumoScan model weights from float32 to float16.
 
 Loads every .pth file from weights/lung/, converts all floating-point
 tensors in the state_dict to float16 (non-float buffers such as

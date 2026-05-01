@@ -1,5 +1,5 @@
-"""
-NEMO Scan — FastAPI web backend for Hugging Face Spaces.
+﻿"""
+PneumoScan — FastAPI web backend for Hugging Face Spaces.
 Mirrors the PySide6 desktop app; connects to the same MongoDB Atlas cluster.
 
 Run locally:  python web_app.py
@@ -30,7 +30,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import database.db as db
 
 # ── App setup ─────────────────────────────────────────────────────────────────
-app = FastAPI(title="NEMO Scan", version="1.0.0")
+app = FastAPI(title="PneumoScan", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,

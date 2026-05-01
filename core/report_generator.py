@@ -1,5 +1,5 @@
-"""
-NEMO Scan - PDF Report Generator
+﻿"""
+PneumoScan - PDF Report Generator
 core/report_generator.py
 
 Generates an English A4 PDF diagnostic report using ReportLab built-in fonts.
@@ -314,8 +314,8 @@ def generate_report(
         rightMargin=margin,
         topMargin=28 * mm,
         bottomMargin=18 * mm,
-        title=f"NEMO Scan Report - {patient_id}",
-        author="NEMO Scan AI Diagnostic System",
+        title=f"PneumoScan Report - {patient_id}",
+        author="PneumoScan AI Diagnostic System",
     )
     frame = Frame(
         margin, 18 * mm,

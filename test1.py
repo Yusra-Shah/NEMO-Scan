@@ -1,4 +1,4 @@
-import torch
+﻿import torch
 
 checkpoint = torch.load(
     r'D:\PneumoScan\Pneumo\weights\lung\densenet121_best.pth',

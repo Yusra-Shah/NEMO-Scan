@@ -1,5 +1,5 @@
-"""
-NEMO Scan - Holographic Scan Dialog
+﻿"""
+PneumoScan - Holographic Scan Dialog
 Location: gui/scan_panel.py
 """
 
@@ -427,7 +427,7 @@ class ScanDialog(QDialog):
         self._showing_heatmap = False
         self._saved_scan_id = None
 
-        self.setWindowTitle("NEMO Scan - AI Diagnostic System")
+        self.setWindowTitle("PneumoScan - AI Diagnostic System")
         self.setMinimumSize(900, 600)
         self.resize(1200, 800)
         self.setStyleSheet(f"background-color: {HOLO_BG};")
@@ -464,7 +464,7 @@ class ScanDialog(QDialog):
 
     def _header(self):
         row = QHBoxLayout()
-        title = QLabel("NEMO SCAN  //  AI DIAGNOSTIC SYSTEM")
+        title = QLabel("PneumoScan  //  AI DIAGNOSTIC SYSTEM")
         title.setStyleSheet(
             f"font-size: 14px; font-weight: 700; color: {HOLO_BLUE_LIGHT}; "
             f"font-family: '{FONT_FAMILY}'; letter-spacing: 3px; background-color: transparent; border: none;"

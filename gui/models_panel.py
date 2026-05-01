@@ -1,5 +1,5 @@
-"""
-NEMO Scan - AI Models Panel
+﻿"""
+PneumoScan - AI Models Panel
 Location: gui/models_panel.py
 
 Shows status cards for all 7 models: name, role, accuracy, weight, loaded status.

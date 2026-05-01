@@ -1,5 +1,5 @@
-"""
-NEMO Scan — Modal serverless deployment (Modal SDK 1.4.x)
+﻿"""
+PneumoScan — Modal serverless deployment (Modal SDK 1.4.x)
 Serves the FastAPI web app with real float16 AI inference on CPU.
 
 ─── One-time setup ─────────────────────────────────────────────────────────────
@@ -96,7 +96,7 @@ image = (
 )
 
 # ── App ────────────────────────────────────────────────────────────────────────
-app = modal.App("nemo-scan")
+app = modal.App("pneumo-scan")
 
 
 @app.function(

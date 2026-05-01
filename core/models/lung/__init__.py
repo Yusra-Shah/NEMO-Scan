@@ -1,5 +1,5 @@
-"""
-NEMO Scan — Lung Models Package
+﻿"""
+PneumoScan — Lung Models Package
 core/models/lung/__init__.py
 """
 

@@ -1,5 +1,5 @@
-"""
-NEMO Scan — Quick Training Sanity Check
+﻿"""
+PneumoScan — Quick Training Sanity Check
 Location: training/quick_test.py
 
 Runs 2 mini-epochs on a tiny subset of data to verify the full
@@ -34,7 +34,7 @@ DEVICE   = 'cuda' if torch.cuda.is_available() else 'cpu'
 def quick_test():
     print()
     print('=' * 55)
-    print('  NEMO Scan — Training Pipeline Sanity Check')
+    print('  PneumoScan — Training Pipeline Sanity Check')
     print('=' * 55)
     print(f'  Device: {DEVICE}')
     print()

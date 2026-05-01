@@ -1,5 +1,5 @@
-"""
-NEMO Scan - Login Screen
+﻿"""
+PneumoScan - Login Screen
 Location: gui/login_screen.py
 
 Two modes: Login (existing doctor) and Register (new doctor account).
@@ -178,7 +178,7 @@ class LoginCard(QFrame):
 
         # switch to register
         bottom = QHBoxLayout()
-        bottom.addWidget(_label("New to NEMO Scan?", 11, TEXT_SEC))
+        bottom.addWidget(_label("New to PneumoScan?", 11, TEXT_SEC))
         bottom.addSpacing(4)
         reg_btn = QPushButton("Create Account")
         reg_btn.setFlat(True)
@@ -411,7 +411,7 @@ class LoginScreen(QWidget):
 
         # footer
         footer = _label(
-            "NEMO Scan v1.0  |  Prototype  |  Academic Use Only",
+            "PneumoScan v1.0  |  Prototype  |  Academic Use Only",
             10, TEXT_SEC
         )
         footer.setAlignment(Qt.AlignCenter)

@@ -1,5 +1,5 @@
-"""
-NEMO Scan - Inference Engine
+﻿"""
+PneumoScan - Inference Engine
 Location: core/inference/engine.py
 
 Central engine that:
@@ -150,7 +150,7 @@ def load_attention_cnn(weight_path: str, device: torch.device) -> AttentionCNN:
 
 class InferenceEngine:
     """
-    Central inference engine for NEMO Scan.
+    Central inference engine for PneumoScan.
 
     All model calls are sequential and protected by a lock.
     This guarantees correct BatchNorm behavior and deterministic results.

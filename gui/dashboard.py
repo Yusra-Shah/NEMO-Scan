@@ -1,5 +1,5 @@
-"""
-NEMO Scan - Dashboard Panel
+﻿"""
+PneumoScan - Dashboard Panel
 Location: gui/dashboard.py
 
 Doctor-centric workflow dashboard.

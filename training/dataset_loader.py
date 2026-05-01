@@ -1,5 +1,5 @@
-"""
-NEMO Scan — Dataset Loader
+﻿"""
+PneumoScan — Dataset Loader
 Location: training/dataset_loader.py
 
 PyTorch Dataset class and DataLoader factory for the lung module.
@@ -205,7 +205,7 @@ def verify_dataset(data_dir: str) -> bool:
     data_dir = Path(data_dir)
     print()
     print("=" * 50)
-    print("  NEMO Scan — Dataset Verification")
+    print("  PneumoScan — Dataset Verification")
     print("=" * 50)
 
     all_ok = True

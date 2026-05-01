@@ -1,5 +1,5 @@
-"""
-NEMO Scan — Ensemble Voting System
+﻿"""
+PneumoScan — Ensemble Voting System
 Location: core/models/lung/ensemble.py
 
 Manages all 7 models and produces the final weighted diagnosis.
@@ -248,7 +248,7 @@ def verify_models():
     """
     print()
     print('=' * 55)
-    print('  NEMO Scan — Model Verification')
+    print('  PneumoScan — Model Verification')
     print('=' * 55)
 
     dummy = torch.zeros(2, 3, 224, 224)  # batch of 2

@@ -1,5 +1,5 @@
-"""
-NEMO Scan — Image Preprocessing Utilities
+﻿"""
+PneumoScan — Image Preprocessing Utilities
 Location: utils/preprocessing.py
 
 Handles all image preprocessing for:

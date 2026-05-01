@@ -1,5 +1,5 @@
-"""
-NEMO Scan - Database Layer
+﻿"""
+PneumoScan - Database Layer
 database/db.py
 
 All MongoDB operations live here. GUI never imports pymongo directly.

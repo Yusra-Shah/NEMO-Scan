@@ -1,5 +1,5 @@
-"""
-NEMO Scan - GUI Styles
+﻿"""
+PneumoScan - GUI Styles
 Location: gui/styles.py
 
 Single source of truth for all colors, fonts, dimensions, and stylesheets.

@@ -1,5 +1,5 @@
-"""
-NEMO Scan — Model 4: EfficientNet-B4
+﻿"""
+PneumoScan — Model 4: EfficientNet-B4
 Location: core/models/lung/efficientnet.py
 
 Role: Accuracy-efficiency balance. Compound scaling model.

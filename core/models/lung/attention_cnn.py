@@ -1,5 +1,5 @@
-"""
-NEMO Scan — Model 7: Attention CNN (Custom Architecture)
+﻿"""
+PneumoScan — Model 7: Attention CNN (Custom Architecture)
 Location: core/models/lung/attention_cnn.py
 
 Role: Explainability model. The ONLY model with a Grad-CAM head.

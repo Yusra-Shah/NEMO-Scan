@@ -1,5 +1,5 @@
-"""
-NEMO Scan — Model 5: Vision Transformer ViT-B/16
+﻿"""
+PneumoScan — Model 5: Vision Transformer ViT-B/16
 Location: core/models/lung/vit.py
 
 Role: Global pattern detection. Architecturally different from all

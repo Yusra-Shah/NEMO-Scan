@@ -1,5 +1,5 @@
-"""
-NEMO Scan - Environment Verification Script
+﻿"""
+PneumoScan - Environment Verification Script
 Run this after installing requirements.txt to confirm everything works.
 Usage: python verify_env.py
 """
@@ -41,7 +41,7 @@ check("PyYAML",         "yaml",             "__version__")
 # Print results table
 print()
 print("=" * 55)
-print("  NEMO Scan — Environment Verification")
+print("  PneumoScan — Environment Verification")
 print("=" * 55)
 print(f"  {'Library':<20} {'Version':<20} {'Status'}")
 print("-" * 55)

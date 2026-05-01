@@ -1,5 +1,5 @@
-"""
-NEMO Scan — Model 2: ResNet-50
+﻿"""
+PneumoScan — Model 2: ResNet-50
 Location: core/models/lung/resnet50.py
 
 Role: Core ensemble backbone. Strong general-purpose feature extractor.

@@ -1,5 +1,5 @@
-"""
-NEMO Scan — Model 1: MobileNetV3
+﻿"""
+PneumoScan — Model 1: MobileNetV3
 Location: core/models/lung/mobilenetv3.py
 
 Role: Speed model. Runs first, returns result in 2-3 seconds on CPU.

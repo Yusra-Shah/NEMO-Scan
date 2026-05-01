@@ -1,5 +1,5 @@
-"""
-NEMO Scan - AttentionCNN Architecture (Inference Copy)
+﻿"""
+PneumoScan - AttentionCNN Architecture (Inference Copy)
 Location: core/inference/attention_arch.py
 
 This is the architecture definition used by the inference engine

@@ -1,5 +1,5 @@
-"""
-NEMO Scan - Core Inference Package
+﻿"""
+PneumoScan - Core Inference Package
 """
 
 from core.inference.engine import InferenceEngine

@@ -1,5 +1,5 @@
-"""
-NEMO Scan — Model 3: DenseNet-121
+﻿"""
+PneumoScan — Model 3: DenseNet-121
 Location: core/models/lung/densenet121.py
 
 Role: Anchor model. Highest ensemble weight. Most important model.

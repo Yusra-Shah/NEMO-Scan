@@ -1,5 +1,5 @@
-"""
-NEMO Scan — Model 6: InceptionV3
+﻿"""
+PneumoScan — Model 6: InceptionV3
 Location: core/models/lung/inception.py
 
 Role: Multi-scale detector. Catches both fine texture details and

@@ -1,8 +1,8 @@
-# NEMO Scan — Global Configuration
+﻿# PneumoScan — Global Configuration
 # Do not change values here unless you update all dependent scripts too.
 
 project:
-  name: "NEMO Scan"
+  name: "PneumoScan"
   full_name: "Neural Engine for Medical Observation"
   version: "1.0.0"
   prototype: "Lung Module"

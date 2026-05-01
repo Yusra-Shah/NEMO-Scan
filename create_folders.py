@@ -1,5 +1,5 @@
-"""
-NEMO Scan - Project Folder Creator
+﻿"""
+PneumoScan - Project Folder Creator
 Run once from your project root to create the full folder structure.
 Usage: python create_folders.py
 """
@@ -53,7 +53,7 @@ folders = [
 
 print()
 print("=" * 50)
-print("  NEMO Scan — Creating Project Structure")
+print("  PneumoScan — Creating Project Structure")
 print("=" * 50)
 
 created = 0

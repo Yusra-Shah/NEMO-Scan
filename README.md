@@ -1,4 +1,4 @@
-# PneumoScan
+﻿# PneumoScan
 
 AI-powered pneumonia detection from chest X-rays. 7 deep learning models. Weighted ensemble inference. Built end-to-end in Python.
 

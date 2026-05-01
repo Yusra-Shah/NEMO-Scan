@@ -1,5 +1,5 @@
-"""
-NEMO Scan - Main Window
+﻿"""
+PneumoScan - Main Window
 Location: gui/main_window.py
 
 Main application window after login.
@@ -58,7 +58,7 @@ class Sidebar(QWidget):
             font-weight: 800;
             font-family: '{FONT_FAMILY}';
         """)
-        logo_text = QLabel("NEMO Scan")
+        logo_text = QLabel("PneumoScan")
         logo_text.setStyleSheet(f"""
             font-size: 15px;
             font-weight: 700;
@@ -240,7 +240,7 @@ class MainWindow(QMainWindow):
         super().__init__(parent)
         self.doctor = doctor
         self.engine = engine
-        self.setWindowTitle("NEMO Scan - Neural Engine for Medical Observation")
+        self.setWindowTitle("PneumoScan - Neural Engine for Medical Observation")
         self.setMinimumSize(1200, 750)
         self.showMaximized()
         self.setStyleSheet(MAIN_STYLE)

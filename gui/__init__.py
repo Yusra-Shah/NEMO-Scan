@@ -1,1 +1,1 @@
-# NEMO Scan GUI Package
+﻿# PneumoScan GUI Package

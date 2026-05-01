@@ -1,5 +1,5 @@
-"""
-NEMO Scan - Patient Records Panel
+﻿"""
+PneumoScan - Patient Records Panel
 Location: gui/patients_panel.py
 
 Loads real patient data from MongoDB.

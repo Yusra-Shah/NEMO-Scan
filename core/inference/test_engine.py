@@ -1,5 +1,5 @@
-"""
-NEMO Scan - Inference Engine Test
+﻿"""
+PneumoScan - Inference Engine Test
 Location: core/inference/test_engine.py
 
 Run this to verify the inference engine loads all models correctly
@@ -36,7 +36,7 @@ def create_dummy_xray(path: str):
 def main():
     print()
     print('=' * 55)
-    print('  NEMO Scan - Inference Engine Test')
+    print('  PneumoScan - Inference Engine Test')
     print('=' * 55)
 
     # Initialize engine

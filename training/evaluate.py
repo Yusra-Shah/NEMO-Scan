@@ -1,5 +1,5 @@
-"""
-NEMO Scan — Evaluation Script
+﻿"""
+PneumoScan — Evaluation Script
 Location: training/evaluate.py
 
 Evaluates a trained model on the test set and produces:
@@ -149,7 +149,7 @@ def evaluate_model(model_name: str):
 
 
 def main():
-    parser = argparse.ArgumentParser(description='NEMO Scan — Model Evaluation')
+    parser = argparse.ArgumentParser(description='PneumoScan — Model Evaluation')
     parser.add_argument(
         '--model',
         type=str,

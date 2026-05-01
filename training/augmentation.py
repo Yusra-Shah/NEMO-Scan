@@ -1,5 +1,5 @@
-"""
-NEMO Scan — Augmentation Pipeline
+﻿"""
+PneumoScan — Augmentation Pipeline
 Location: training/augmentation.py
 
 Defines all augmentation transforms used during:

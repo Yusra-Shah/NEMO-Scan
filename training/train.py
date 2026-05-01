@@ -1,5 +1,5 @@
-"""
-NEMO Scan — Training Script
+﻿"""
+PneumoScan — Training Script
 Location: training/train.py
 
 Trains all 7 lung models using transfer learning.
@@ -341,7 +341,7 @@ def train_model(model_name: str, device: torch.device):
 # ── Entry Point ───────────────────────────────────────────────────────────────
 
 def main():
-    parser = argparse.ArgumentParser(description='NEMO Scan — Model Training')
+    parser = argparse.ArgumentParser(description='PneumoScan — Model Training')
     parser.add_argument(
         '--model',
         type=str,
