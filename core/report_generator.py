@@ -96,14 +96,14 @@ def _page_decorator(canvas, doc):
     canvas.setFillColor(C_BG)
     canvas.rect(0, h - 22 * mm, w, 16 * mm, fill=1, stroke=0)
 
-    # Logo text: "NEMO" in brand colors + " Scan"
+    # Logo text: "Pneumo" in brand colors + " Scan"
     canvas.setFont("Helvetica-Bold", 15)
     x = 15 * mm
     y = h - 15 * mm
-    for ch, clr in zip("NEMO", [C_BLUE, C_RED, C_YELLOW, C_GREEN]):
+    for ch, clr in zip("Pneumo", [C_BLUE, C_RED, C_YELLOW, C_GREEN, C_BLUE, C_RED]):
         canvas.setFillColor(clr)
         canvas.drawString(x, y, ch)
-        x += 10 * mm
+        x += canvas.stringWidth(ch, "Helvetica-Bold", 15)
     canvas.setFillColor(C_DARK)
     canvas.drawString(x, y, " Scan")
 

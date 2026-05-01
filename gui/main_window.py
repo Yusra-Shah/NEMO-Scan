@@ -240,7 +240,7 @@ class MainWindow(QMainWindow):
         super().__init__(parent)
         self.doctor = doctor
         self.engine = engine
-        self.setWindowTitle("PneumoScan - Neural Engine for Medical Observation")
+        self.setWindowTitle("PneumoScan - AI-Powered Pneumonia Detection")
         self.setMinimumSize(1200, 750)
         self.showMaximized()
         self.setStyleSheet(MAIN_STYLE)

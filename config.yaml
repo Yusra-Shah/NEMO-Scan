@@ -3,7 +3,7 @@
 
 project:
   name: "PneumoScan"
-  full_name: "Neural Engine for Medical Observation"
+  full_name: "AI-Powered Pneumonia Detection"
   version: "1.0.0"
   prototype: "Lung Module"
 
