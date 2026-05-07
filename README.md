@@ -8,7 +8,7 @@ AI-powered pneumonia detection from chest X-rays. 7 deep learning models. Weight
 
 ## Overview
 
-A doctor logs in, registers a patient, and uploads a chest X-ray. PneumoScan runs the image through a 7-model ensemble and returns a diagnosis. Every model votes independently. Results include confidence score, severity, subtype, and a Grad-CAM heatmap showing which lung regions influenced the prediction. A bilingual PDF report (English + Urdu) is generated and saved per patient in MongoDB.
+A doctor logs in, registers a patient, and uploads a chest X-ray. PneumoScan runs the image through a 7-model ensemble and returns a diagnosis. Every model votes independently. Results include confidence score, severity, subtype, and a Grad-CAM heatmap showing which lung regions influenced the prediction. A PDF report is generated and saved per patient in MongoDB.
 
 All results come from real PyTorch inference on trained weights.
 
@@ -77,8 +77,22 @@ Ensemble accuracy: 98.4%
 - Grad-CAM heatmap overlay on the original X-ray
 - Severity grading: None / Mild / Moderate / Severe
 - Subtype classification: Bacterial or Viral
-- Bilingual PDF report generation in English and Urdu via ReportLab
+- PDF report generation via ReportLab
 - MongoDB Atlas with transactions, nested documents, and audit logging
+
+---
+
+## Advanced DBMS Features
+
+This project was built with MongoDB Atlas as a graded Advanced DBMS requirement. The following features are demonstrated:
+
+**Transactions** — scan results are written atomically. The scan document, model votes, and audit log entry are all committed in a single MongoDB transaction. If any write fails, the entire operation is rolled back.
+
+**Nested documents** — the `scans` collection stores the full ensemble result as a nested structure. Each document contains a `result` subdocument (diagnosis, confidence, severity, subtype) and a `model_votes` array with per-model predictions embedded directly.
+
+**Audit logging** — every login, patient registration, and scan submission is recorded to a dedicated `audit_log` collection with timestamp, doctor ID, action type, and relevant metadata.
+
+**Schema design** — four collections: `doctors`, `patients`, `scans`, `audit_log`. All MongoDB logic is isolated to `database/db.py`. No GUI file imports pymongo directly.
 
 ---
 
@@ -106,6 +120,20 @@ Split: 80% train / 10% val / 10% test, stratified.
 
 ---
 
+## Setup Requirements
+
+**Python version:** 3.12
+
+**MongoDB:** A MongoDB Atlas URI is required. Create a free cluster at mongodb.com/atlas, then add your connection string to `config.yaml`:
+
+```yaml
+mongodb_uri: "mongodb+srv://<user>:<password>@<cluster>.mongodb.net/"
+```
+
+**Model weights:** The 7 trained `.pth` files are included in the submission folder under `weights/lung/`. Place them there before running. They are not in the GitHub repository due to file size.
+
+---
+
 ## Run Locally
 
 ```bash
@@ -117,8 +145,6 @@ pip install -r requirements.txt
 python main.py
 ```
 
-Requires Python 3.12 and a MongoDB Atlas URI in `config.yaml`.
-
 ---
 
 ## Project Structure
@@ -127,7 +153,7 @@ Requires Python 3.12 and a MongoDB Atlas URI in `config.yaml`.
 Pneumo/
   core/
     inference/engine.py       Ensemble inference engine
-    report_generator.py       Bilingual PDF generation
+    report_generator.py       PDF report generation
     gradcam.py                Grad-CAM heatmap logic
   gui/
     main_window.py
@@ -136,8 +162,8 @@ Pneumo/
     patients_panel.py
     models_panel.py
     styles.py
-  database/                   MongoDB Atlas integration
-  weights/lung/               Trained .pth files (float16)
+  database/                   MongoDB Atlas integration (all pymongo logic isolated here)
+  weights/lung/               Trained .pth files (float16, not included in repo)
   outputs/
     reports/                  Generated PDFs
     heatmaps/                 Saved Grad-CAM overlays
